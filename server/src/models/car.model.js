@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
 const CarSchema = new Schema({
   title:        { type: String, required: true },
