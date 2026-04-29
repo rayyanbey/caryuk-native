@@ -1,0 +1,1 @@
+// Model types - now converted to JSDoc comments if needed
