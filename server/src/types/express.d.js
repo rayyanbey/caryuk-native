@@ -1,0 +1,1 @@
+// Express type definitions - now converted to JSDoc comments if needed
