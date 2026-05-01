@@ -29,7 +29,6 @@ app.use('/api/', limiter);
 
 // Passport Configuration
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Health Check Route
 app.get('/health', (req, res) => {

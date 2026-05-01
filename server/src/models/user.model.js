@@ -1,35 +1,42 @@
 const { Schema, model } = require('mongoose');
-const hashPassword = require('../utils/authService.js').hashPassword;
-const comparePassword = require('../utils/authService.js').comparePassword;
-const generateToken = require('../utils/authService.js').generateToken;
+const { hashPassword, comparePassword, generateToken } = require('../utils/authService');
+
 const UserSchema = new Schema({
   name:         { type: String, required: true },
-  email:        { type: String, required: true, unique: true },
+  email:        { type: String, required: true, unique: true, lowercase: true },
   password:     { type: String },               // null for OAuth users
   avatarUrl:    { type: String },
   phone:        { type: String },
-  provider:     { type: String, enum: ['local', 'google', 'facebook'], default: 'local' },
-  providerId:   { type: String },               // Google/Facebook UID
+  provider:     { type: String, enum: ['local', 'google'], default: 'local' },
+  providerId:   { type: String },               // OAuth provider UID
   favourites:   [{ type: Schema.Types.ObjectId, ref: 'Car' }],
   expoPushToken:{ type: String },               // for push notifications
-  createdAt:    { type: Date, default: Date.now }
+  isActive:     { type: Boolean, default: true },
+  lastLogin:    { type: Date },
+  createdAt:    { type: Date, default: Date.now },
+  updatedAt:    { type: Date, default: Date.now }
 });
 
-UserSchema.methods.generateToken = function(){
+// Instance methods
+UserSchema.methods.generateToken = function() {
     return generateToken(this);
-}
+};
 
-UserSchema.methods.comparePassword = function(password){
+UserSchema.methods.comparePassword = function(password) {
     return comparePassword(password, this.password);
-}
+};
 
-UserSchema.pre('save',async function(next){
-    if(this.isModified('password')){
-        this.password = await hashPassword(this.password);
+// Pre-save hook to hash password
+UserSchema.pre('save', async function() {
+    if (this.isModified('password') && this.password) {
+        try {
+            this.password = await hashPassword(this.password);
+        } catch (error) {
+            next(error);
+        }
     }
-    next();
-})
-
+    this.updatedAt = new Date();
+});
 
 module.exports = model('User', UserSchema);
 
