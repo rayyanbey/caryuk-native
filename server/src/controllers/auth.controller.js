@@ -3,19 +3,20 @@ const { generateToken, generateRefreshToken } = require('../utils/authService');
 require('dotenv').config();
 
 /**
- * SIGNUP - Email/Password Registration
+ * SIGNUP - Email/Password Registration with Profile Picture
  * POST /api/auth/signup
- * Body: { name, email, password, confirmPassword }
+ * Body: { name, email, password, confirmPassword, phone }
+ * File: avatar (optional) - profile picture
  */
 const signup = async (req, res, next) => {
     try {
-        const { name, email, password, confirmPassword } = req.body;
+        const { name, email, password, confirmPassword, phone } = req.body;
 
         // Validation
         if (!name || !email || !password || !confirmPassword) {
             return res.status(400).json({
                 success: false,
-                error: 'All fields are required'
+                error: 'Name, email, password, and confirmPassword are required'
             });
         }
 
@@ -42,13 +43,20 @@ const signup = async (req, res, next) => {
             });
         }
 
-        // Create new user
-        const newUser = await User.create({
+        // Prepare user data
+        const userData = {
             name: name.trim(),
             email: email.toLowerCase(),
             password: password,
             provider: 'local'
-        });
+        };
+
+        // Add optional fields
+        if (phone) userData.phone = phone.trim();
+        if (req.file) userData.avatarUrl = req.file.secure_url;
+
+        // Create new user
+        const newUser = await User.create(userData);
 
         // Generate tokens
         const token = newUser.generateToken();

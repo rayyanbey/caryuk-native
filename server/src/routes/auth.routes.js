@@ -1,19 +1,63 @@
 const router = require('express').Router();
 const passport = require('passport');
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 const authController = require('../controllers/auth.controller');
 const verifyJWT = require('../middleware/verifyJWT');
+const uploadErrorHandler = require('../middleware/upload');
 require('../config/passport'); // Load passport strategies
+require('dotenv').config();
+
+// Configure Cloudinary for signup profile upload
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const signupStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'caryuk/profiles',
+        format: async (req, file) => {
+            const allowedFormats = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const ext = file.originalname.split('.').pop().toLowerCase();
+            return allowedFormats.includes(ext) ? ext : 'jpg';
+        },
+        public_id: (req, file) => {
+            const timestamp = Date.now();
+            const randomStr = Math.random().toString(36).substring(2, 8);
+            return `${timestamp}_${randomStr}`;
+        },
+        quality: 'auto:best'
+    }
+});
+
+const signupUpload = multer({
+    storage: signupStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file format. Only JPEG, PNG, GIF, WebP allowed'));
+        }
+    }
+});
 
 // ============================================
 // EMAIL/PASSWORD AUTHENTICATION
 // ============================================
 
 /**
- * SIGNUP - Create new account
+ * SIGNUP - Create new account with profile picture
  * POST /api/auth/signup
- * Body: { name, email, password, confirmPassword }
+ * Body: { name, email, password, confirmPassword, phone }
+ * File: avatar (optional) - profile picture
  */
-router.post('/signup', authController.signup);
+router.post('/signup', signupUpload.single('avatar'), uploadErrorHandler, authController.signup);
 
 /**
  * LOGIN - Login with email/password
