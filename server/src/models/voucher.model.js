@@ -54,4 +54,7 @@ const VoucherSchema = new Schema({
   },
   {
     timestamps: true
-  })
+  }
+);
+
+module.exports = model('Voucher', VoucherSchema);
