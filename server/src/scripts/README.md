@@ -83,18 +83,24 @@ npm run clear
 - `car` (Car reference)
 - `voucherCode` (optional, string reference)
 
-### Notifications (8 total)
+### Notifications (8 total) - Duolingo Pakistan Style with MAXIMUM FOMO! 🇵🇰
 
-- **Type: order_update** (3)
-  - Order confirmations, payment updates, new orders on listings
-- **Type: new_listing** (1)
-  - Matching interest alerts
-- **Type: price_drop** (1)
-  - Price reduction alerts
-- **Type: promo** (1)
-  - Promotional offers
-- **Type: system** (2)
-  - Welcome messages, maintenance notices
+Notifications are written in fun, Duolingo-style Pakistani memes with FOMO tactics like:
+- ⏰ Time limits ("LAST 2 HOURS!", "SIRF 18 GHANTE")
+- 🔥 Scarcity ("Sirf 1 bacha!", "47 log ne dekha")
+- 💥 Social pressure ("3 log intezaar kar rahe", "Nabil ke paas 8 cars hain")
+- 📊 Leaderboards/comparisons ("Tu akela reh gaya!")
+- ⚠️ Urgency ("EMERGENCY!", "SERVER DOWN होने WALA!")
+
+**Examples:**
+- ⏰ "Deal Pakka - LAST 2 HOURS! Payment na kiya tou Hassan 30 min mein cancel kar dega!"
+- 🔥 "Sirf 1 Toyota Fortuner Bacha! Fatima ne bhi dekha hai..."
+- ⚡ "FLASH SALE - 47 log ne dekha aaj, 3 intezaar kar rahe hain. Tum kya kar rahe?"
+- 🚨 "EMERGENCY - Sirf AAJKE LIYE! 89 users ne pehle se use kar liya! 18 GHANTE BAAKI!"
+- 💰 "CONGRATS! 3 log aur intezaar kar rahe the! Tu lucky nikla!"
+- 💸 "Paise Aa Gaye! 5 sales aaj! Nabil ke paas sirf 2 hain😂"
+- 🔧 "SERVER DOWN होने WALA! 156 orders pending!"
+- 😱 "4,286 cars listed aur tu abhi dekh nahi raha? Nabil - 8 cars, tu - ZERO!"
 
 **All notifications linked to `userId` (User reference)**
 

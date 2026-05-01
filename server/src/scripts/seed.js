@@ -414,64 +414,64 @@ const seedOrders = async (users, cars, vouchers) => {
 };
 
 /**
- * Seed Notifications (linked to users)
+ * Seed Notifications (linked to users) - Duolingo Pakistan Style with FOMO
  */
 const seedNotifications = async (users) => {
     try {
         const notifications = [
             {
                 userId: users[3]._id,
-                title: 'Order Confirmed',
-                body: 'Your order for Honda Civic has been confirmed and payment received.',
+                title: '⏰ Deal Pakka - LAST 2 HOURS! 🎉',
+                body: 'Badshah! Tera Honda Civic ki deal confirm ho gai! Payment na kiya tou Hassan 30 min mein cancel kar dega! Jaldi!',
                 type: 'order_update',
                 read: false
             },
             {
                 userId: users[3]._id,
-                title: 'New Listing Alert',
-                body: 'A new Toyota Fortuner matching your interests is now available.',
+                title: '🔥 Sirf 1 Toyota Fortuner Bacha! 🚗',
+                body: 'Naya Toyota Fortuner aa gaya! Yeh toh tera hi dua tha na? Fatima ne bhi dekha hai... jaldi se khareed le!',
                 type: 'new_listing',
                 read: false
             },
             {
                 userId: users[4]._id,
-                title: 'Price Drop Alert',
-                body: 'The Suzuki Alto you viewed is now 50,000 PKR cheaper!',
+                title: '⚡ FLASH SALE - SIRF 4 GHANTE! 💨',
+                body: 'Suzuki Alto pe 50,000 ka discount! 47 log ne dekha aaj... 3 already intezaar kar rahe hain. Tum kya kar rahe ho?',
                 type: 'price_drop',
                 read: true
             },
             {
                 userId: users[5]._id,
-                title: 'Summer Special Promotion',
-                body: 'Get 20% off on all SUVs this week with code SUMMER20.',
+                title: '🚨 EMERGENCY - Paise Waste Ho Rahe Hain! 🇵🇰',
+                body: 'SUMMER20 code - 20% off SUVs! Sirf AAJKE LIYE! 89 users ne pehle se use kar liya... tu kya kar rahe? 18 GHANTE BAAKI!',
                 type: 'promo',
                 read: false
             },
             {
                 userId: users[0]._id,
-                title: 'New Order on Your Listing',
-                body: 'Someone has placed an order for your Honda Civic. Check the details now.',
+                title: '💰 CONGRATS BHAI! 🎊',
+                body: 'Tera Honda Civic bik gaya! Ayesha ne order kar dia! 🔥 3 log aur intezaar kar rahe the! Tu lucky nikla!',
                 type: 'order_update',
                 read: true
             },
             {
                 userId: users[1]._id,
-                title: 'Payment Received',
-                body: 'We have received payment for the sale of Suzuki Alto.',
+                title: '💸 PAISE AA GAYE! AAJKA 5TH SALE! 🎯',
+                body: 'Suzuki Alto payment confirmed! Tere sales aaj 5 ban gaye! Nabil ke paas sirf 2 hain😂 Apna namuna likha de!',
                 type: 'order_update',
                 read: true
             },
             {
                 userId: users[2]._id,
-                title: 'System Maintenance',
-                body: 'We are performing scheduled maintenance on May 3rd from 2 AM to 4 AM.',
+                title: '⚠️ SERVER DOWN होने WALA! PEHLE ORDER KAR! 🔧',
+                body: 'May 3rd 2-4 AM - Maintenance! 156 orders pending hain! Abb order kar varna queue mein 500 din intezaar karna padega!',
                 type: 'system',
                 read: false
             },
             {
                 userId: users[4]._id,
-                title: 'Welcome to Caryuk',
-                body: 'Welcome! Start exploring and listing your vehicles today.',
+                title: '😱 TU AKELA REH GAYA! 📊',
+                body: 'Caryuk pe 4,286 cars listed hain aur tu abhi bhi dekh hi nahi raha? Nabil - 8 cars, Khan - 5 cars, tu - ZERO! 🤦',
                 type: 'system',
                 read: true
             }
