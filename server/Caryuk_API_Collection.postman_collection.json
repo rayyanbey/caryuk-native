@@ -1,0 +1,1442 @@
+{
+  "info": {
+    "name": "Caryuk API Collection",
+    "description": "Complete API documentation for Caryuk Car Marketplace",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ali Khan\",\n  \"email\": \"ali@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"phone\": \"03001234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ali@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Google OAuth Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"google_id_token_from_frontend\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "google"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cars",
+      "item": [
+        {
+          "name": "Get All Cars (Search & Filter)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/cars?search=civic&category=Sedan&minPrice=1000000&maxPrice=3000000&fuelType=Petrol&transmission=Auto&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "civic"
+                },
+                {
+                  "key": "category",
+                  "value": "Sedan"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "1000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "3000000"
+                },
+                {
+                  "key": "fuelType",
+                  "value": "Petrol"
+                },
+                {
+                  "key": "transmission",
+                  "value": "Auto"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Car Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/cars/64abc123",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars", "64abc123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Popular Cars",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/cars/popular?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars", "popular"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trending Cars",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/cars/trending?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars", "trending"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Car",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Honda Civic 2023",
+                  "type": "text"
+                },
+                {
+                  "key": "brand",
+                  "value": "Honda",
+                  "type": "text"
+                },
+                {
+                  "key": "model",
+                  "value": "Civic",
+                  "type": "text"
+                },
+                {
+                  "key": "year",
+                  "value": "2023",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "2500000",
+                  "type": "text"
+                },
+                {
+                  "key": "category",
+                  "value": "Sedan",
+                  "type": "text"
+                },
+                {
+                  "key": "fuelType",
+                  "value": "Petrol",
+                  "type": "text"
+                },
+                {
+                  "key": "transmission",
+                  "value": "Auto",
+                  "type": "text"
+                },
+                {
+                  "key": "mileage",
+                  "value": "15000 km",
+                  "type": "text"
+                },
+                {
+                  "key": "color",
+                  "value": "Black",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Well maintained car",
+                  "type": "text"
+                },
+                {
+                  "key": "features",
+                  "value": "[\"AC\", \"Power Steering\", \"ABS\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "disabled": false
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cars",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Car",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Honda Civic 2023 - Updated\",\n  \"price\": 2450000,\n  \"mileage\": \"16000 km\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cars/64abc123",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars", "64abc123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Car",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cars/64abc123",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars", "64abc123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Cars",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cars/my-cars",
+              "host": ["{{baseUrl}}"],
+              "path": ["cars", "my-cars"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"64car123\",\n  \"notes\": \"Interested in this car\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "add"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove from Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"64car123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/remove",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "remove"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voucherCode\": \"SAVE20\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/apply-voucher",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "apply-voucher"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cart Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/clear",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "clear"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Initiate Phone Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"64car123\",\n  \"sellerId\": \"64seller123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/phone",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "phone"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Initiate SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"64car123\",\n  \"sellerId\": \"64seller123\",\n  \"message\": \"Are you still selling this car?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/sms",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "sms"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/history?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Received Contacts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact/received?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "received"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Report Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contactId\": \"64contact123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/report",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "report"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"64car123\",\n  \"quantity\": 1,\n  \"voucherCode\": \"SAVE20\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders?status=pending&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/64order123",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "64order123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders/64order123",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "64order123"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "Get Public Stripe Key",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment/public-key",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "public-key"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"64order123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create-intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "create-intent"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"64order123\",\n  \"paymentIntentId\": \"pi_xxxxxxxxxxxx\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "confirm"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment/status/pi_xxxxxxxxxxxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "status", "pi_xxxxxxxxxxxx"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refund Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"64order123\",\n  \"reason\": \"requested_by_customer\",\n  \"amount\": 500000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "refund"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"64order123\",\n  \"cancellationReason\": \"User changed mind\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "cancel"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Initialize Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"64order123\",\n  \"returnUrl\": \"https://app.example.com/checkout-return\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/initialize-checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "initialize-checkout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transaction Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/transaction/64order123",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "transaction", "64order123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transactions List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/transactions?page=1&limit=10&status=paid",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "transactions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "paid"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "item": [
+        {
+          "name": "Get Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Recommendation Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Regenerate Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/regenerate",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "regenerate"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Search History",
+      "item": [
+        {
+          "name": "Save Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"civic\",\n  \"filters\": {\n    \"category\": \"Sedan\",\n    \"minPrice\": 2000000,\n    \"maxPrice\": 3000000,\n    \"fuelType\": \"Petrol\"\n  },\n  \"resultCount\": 45\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/search-history",
+              "host": ["{{baseUrl}}"],
+              "path": ["search-history"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Search History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/search-history?limit=15",
+              "host": ["{{baseUrl}}"],
+              "path": ["search-history"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "15"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trending Searches",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/search-history/trending",
+              "host": ["{{baseUrl}}"],
+              "path": ["search-history", "trending"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Search",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/search-history/64search123",
+              "host": ["{{baseUrl}}"],
+              "path": ["search-history", "64search123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Search History",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/search-history/clear",
+              "host": ["{{baseUrl}}"],
+              "path": ["search-history", "clear"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Social Share",
+      "item": [
+        {
+          "name": "Track Social Share",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"facebook\",\n  \"shareUrl\": \"https://facebook.com/sharedpost\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/social-share/64car123",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-share", "64car123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Share Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/social-share/64car123/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-share", "64car123", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Share Leaderboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/social-share/leaderboard?limit=10&platform=whatsapp",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-share", "leaderboard"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "platform",
+                  "value": "whatsapp"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Shares",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/social-share/my-shares?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-share", "my-shares"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Ali Khan Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "03009876543",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Favorite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"64car123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/favorites",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "favorites"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Favorite",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/favorites/64car123",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "favorites", "64car123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/favorites",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "favorites"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vouchers",
+      "item": [
+        {
+          "name": "Get All Vouchers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vouchers?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["vouchers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE20\",\n  \"orderAmount\": 2500000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vouchers/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["vouchers", "validate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE20\",\n  \"discountType\": \"percentage\",\n  \"discountValue\": 20,\n  \"maxDiscountCap\": 500000,\n  \"minOrderAmount\": 1000000,\n  \"expiresAt\": \"2026-12-31T23:59:59Z\",\n  \"usageLimit\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vouchers",
+              "host": ["{{baseUrl}}"],
+              "path": ["vouchers"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
