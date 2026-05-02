@@ -17,6 +17,9 @@ npm run seed
 - **5 Vouchers** with percentage and flat discount types
 - **6 Orders** linking buyers to cars with optional vouchers
 - **8 Notifications** linked to users with various notification types
+- **15 Search History** entries from user searches with filters
+- **3 Carts** from different buyers with items and vouchers
+- **4 Contact Logs** tracking phone calls and SMS between buyers and sellers
 
 ### 2. Clear Database
 Deletes all data from the database without seeding new data.

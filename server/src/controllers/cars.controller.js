@@ -250,11 +250,100 @@ const getMyCars = async (req, res, next) => {
     }
 };
 
+/**
+ * GET POPULAR CARS (Most viewed)
+ * GET /api/cars/popular
+ */
+const getPopularCars = async (req, res, next) => {
+    try {
+        const { limit = 10 } = req.query;
+
+        const cars = await Car.find({ status: 'available' })
+            .populate('seller', 'name email avatarUrl phone')
+            .sort({ views: -1 })
+            .limit(parseInt(limit));
+
+        res.status(200).json({
+            success: true,
+            data: cars
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET TRENDING CARS (Most viewed in last 7 days)
+ * GET /api/cars/trending
+ */
+const getTrendingCars = async (req, res, next) => {
+    try {
+        const { limit = 10 } = req.query;
+
+        // Calculate trending score: views in last 7 days / age in days
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+        const cars = await Car.aggregate([
+            {
+                $match: {
+                    status: 'available',
+                    createdAt: { $lte: new Date() }
+                }
+            },
+            {
+                $addFields: {
+                    ageInDays: {
+                        $max: [
+                            {
+                                $divide: [
+                                    { $subtract: [new Date(), '$createdAt'] },
+                                    1000 * 60 * 60 * 24
+                                ]
+                            },
+                            1
+                        ]
+                    },
+                    trendingScore: '$views'
+                }
+            },
+            {
+                $sort: { trendingScore: -1 }
+            },
+            {
+                $limit: parseInt(limit)
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seller',
+                    foreignField: '_id',
+                    as: 'seller'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$seller',
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: cars
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAllCars,
     getCarById,
     createCar,
     updateCar,
     deleteCar,
-    getMyCars
+    getMyCars,
+    getPopularCars,
+    getTrendingCars
 };

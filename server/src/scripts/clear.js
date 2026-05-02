@@ -8,6 +8,11 @@ const Car = require('../models/car.model');
 const Order = require('../models/order.model');
 const Voucher = require('../models/voucher.model');
 const Notification = require('../models/notification.model');
+const SearchHistory = require('../models/searchHistory.model');
+const Cart = require('../models/cart.model');
+const Contact = require('../models/contact.model');
+const Recommendation = require('../models/recommendation.model');
+const SocialShare = require('../models/socialShare.model');
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -53,6 +58,21 @@ const clearDatabase = async () => {
         
         const notificationCount = await Notification.deleteMany({});
         console.log(`✓ Deleted ${notificationCount.deletedCount} notifications`);
+        
+        const searchCount = await SearchHistory.deleteMany({});
+        console.log(`✓ Deleted ${searchCount.deletedCount} search history entries`);
+        
+        const cartCount = await Cart.deleteMany({});
+        console.log(`✓ Deleted ${cartCount.deletedCount} carts`);
+        
+        const contactCount = await Contact.deleteMany({});
+        console.log(`✓ Deleted ${contactCount.deletedCount} contacts`);
+        
+        const recommendationCount = await Recommendation.deleteMany({});
+        console.log(`✓ Deleted ${recommendationCount.deletedCount} recommendations`);
+        
+        const socialShareCount = await SocialShare.deleteMany({});
+        console.log(`✓ Deleted ${socialShareCount.deletedCount} social shares`);
         
         console.log('\n✅ Database cleared successfully!\n');
         process.exit(0);
