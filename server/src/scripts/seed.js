@@ -8,6 +8,11 @@ const Car = require('../models/car.model');
 const Order = require('../models/order.model');
 const Voucher = require('../models/voucher.model');
 const Notification = require('../models/notification.model');
+const SearchHistory = require('../models/searchHistory.model');
+const Cart = require('../models/cart.model');
+const Contact = require('../models/contact.model');
+const Recommendation = require('../models/recommendation.model');
+const SocialShare = require('../models/socialShare.model');
 
 // Import auth service
 const { hashPassword } = require('../utils/authService');
@@ -42,6 +47,11 @@ const clearCollections = async () => {
         await Order.deleteMany({});
         await Voucher.deleteMany({});
         await Notification.deleteMany({});
+        await SearchHistory.deleteMany({});
+        await Cart.deleteMany({});
+        await Contact.deleteMany({});
+        await Recommendation.deleteMany({});
+        await SocialShare.deleteMany({});
         console.log('✓ Collections cleared');
     } catch (error) {
         console.error('✗ Error clearing collections:', error.message);
@@ -487,6 +497,210 @@ const seedNotifications = async (users) => {
 };
 
 /**
+ * Seed Search History
+ */
+const seedSearchHistory = async (users) => {
+    try {
+        const searchQueries = [
+            { query: 'Honda Civic', filters: { category: 'Sedan' } },
+            { query: 'SUV under 3 million', filters: { category: 'SUV', maxPrice: 3000000 } },
+            { query: 'White Corolla', filters: { brand: 'Toyota', color: 'White' } },
+            { query: 'Automatic transmission', filters: { transmission: 'Auto' } },
+            { query: 'Petrol cars', filters: { fuelType: 'Petrol' } }
+        ];
+
+        const searches = [];
+        users.slice(3, 6).forEach((user, index) => {
+            searchQueries.forEach((sq, queryIndex) => {
+                searches.push({
+                    userId: user._id,
+                    query: sq.query,
+                    filters: sq.filters,
+                    resultCount: Math.floor(Math.random() * 50) + 1
+                });
+            });
+        });
+
+        await SearchHistory.create(searches);
+        console.log(`✓ Seeded ${searches.length} search history entries`);
+        return searches;
+    } catch (error) {
+        console.error('✗ Error seeding search history:', error.message);
+        process.exit(1);
+    }
+};
+
+/**
+ * Seed Carts
+ */
+const seedCarts = async (users, cars) => {
+    try {
+        const buyers = users.slice(3, 6);
+        const carts = [];
+
+        // Cart 1: Multiple items
+        carts.push({
+            userId: buyers[0]._id,
+            items: [
+                { car: cars[1]._id, notes: 'Call before visiting' },
+                { car: cars[3]._id, notes: '' }
+            ],
+            appliedVoucher: 'SAVE10',
+            discountAmount: 180000
+        });
+
+        // Cart 2: Single item
+        carts.push({
+            userId: buyers[1]._id,
+            items: [
+                { car: cars[4]._id, notes: 'Need for weekend' }
+            ],
+            appliedVoucher: null,
+            discountAmount: 0
+        });
+
+        // Cart 3: Multiple items
+        carts.push({
+            userId: buyers[2]._id,
+            items: [
+                { car: cars[2]._id },
+                { car: cars[5]._id }
+            ],
+            appliedVoucher: null,
+            discountAmount: 0
+        });
+
+        await Cart.create(carts);
+        console.log(`✓ Seeded ${carts.length} carts`);
+        return carts;
+    } catch (error) {
+        console.error('✗ Error seeding carts:', error.message);
+        process.exit(1);
+    }
+};
+
+/**
+ * Seed Contact History
+ */
+const seedContacts = async (users, cars) => {
+    try {
+        const buyers = users.slice(3, 6);
+        const sellers = users.slice(0, 3);
+
+        const contacts = [
+            {
+                initiator: buyers[0]._id,
+                recipient: sellers[0]._id,
+                car: cars[0]._id,
+                contactMethod: 'phone',
+                recipientPhone: sellers[0].phone,
+                status: 'completed'
+            },
+            {
+                initiator: buyers[1]._id,
+                recipient: sellers[1]._id,
+                car: cars[2]._id,
+                contactMethod: 'sms',
+                recipientPhone: sellers[1].phone,
+                message: 'Hi, is this car still available?',
+                status: 'initiated'
+            },
+            {
+                initiator: buyers[2]._id,
+                recipient: sellers[2]._id,
+                car: cars[4]._id,
+                contactMethod: 'phone',
+                recipientPhone: sellers[2].phone,
+                status: 'completed'
+            },
+            {
+                initiator: buyers[0]._id,
+                recipient: sellers[1]._id,
+                car: cars[3]._id,
+                contactMethod: 'sms',
+                recipientPhone: sellers[1].phone,
+                message: 'Can we negotiate on price?',
+                status: 'initiated'
+            }
+        ];
+
+        await Contact.create(contacts);
+        console.log(`✓ Seeded ${contacts.length} contact logs`);
+        return contacts;
+    } catch (error) {
+        console.error('✗ Error seeding contacts:', error.message);
+        process.exit(1);
+    }
+};
+
+/**
+ * Seed Recommendations
+ */
+const seedRecommendations = async (users, cars) => {
+    try {
+        const buyers = users.slice(3, 6);
+        const recommendations = [];
+
+        // Create recommendations for each buyer
+        buyers.forEach((buyer, buyerIndex) => {
+            const reasons = ['similar_category', 'same_brand', 'similar_price', 'trending', 'popular'];
+            
+            // Create 5 recommendations per buyer
+            for (let i = 0; i < 5; i++) {
+                const carIndex = (buyerIndex * 2 + i) % cars.length;
+                recommendations.push({
+                    userId: buyer._id,
+                    recommendedCar: cars[carIndex]._id,
+                    reason: reasons[i % reasons.length],
+                    score: Math.floor(Math.random() * 40) + 60 // 60-100 score
+                });
+            }
+        });
+
+        await Recommendation.create(recommendations);
+        console.log(`✓ Seeded ${recommendations.length} recommendations`);
+        return recommendations;
+    } catch (error) {
+        console.error('✗ Error seeding recommendations:', error.message);
+        process.exit(1);
+    }
+};
+
+/**
+ * Seed Social Shares
+ */
+const seedSocialShares = async (users, cars) => {
+    try {
+        const platforms = ['facebook', 'whatsapp', 'instagram', 'twitter'];
+        const shares = [];
+
+        cars.forEach((car, carIndex) => {
+            // Each car gets 3-5 shares on different platforms
+            const shareCount = Math.floor(Math.random() * 3) + 3;
+            for (let i = 0; i < shareCount; i++) {
+                shares.push({
+                    car: car._id,
+                    platform: platforms[Math.floor(Math.random() * platforms.length)],
+                    sharedBy: users[Math.floor(Math.random() * users.length)]._id,
+                    shareUrl: `https://caryuk.com/cars/${car._id}`,
+                    metadata: {
+                        userAgent: 'Mozilla/5.0',
+                        ipAddress: '192.168.1.' + Math.floor(Math.random() * 255)
+                    }
+                });
+            }
+        });
+
+        await SocialShare.create(shares);
+        console.log(`✓ Seeded ${shares.length} social shares`);
+        return shares;
+    } catch (error) {
+        console.error('✗ Error seeding social shares:', error.message);
+        process.exit(1);
+    }
+};
+
+/**
  * Main seed function
  */
 const seedDatabase = async () => {
@@ -501,6 +715,11 @@ const seedDatabase = async () => {
         const vouchers = await seedVouchers();
         await seedOrders(users, cars, vouchers);
         await seedNotifications(users);
+        await seedSearchHistory(users);
+        await seedCarts(users, cars);
+        await seedContacts(users, cars);
+        await seedRecommendations(users, cars);
+        await seedSocialShares(users, cars);
         
         console.log('\n✅ Database seeding completed successfully!\n');
         console.log('📊 Seeded Data Summary:');
@@ -509,6 +728,12 @@ const seedDatabase = async () => {
         console.log('   • Vouchers: 5');
         console.log('   • Orders: 6 (linked to buyers & cars)');
         console.log('   • Notifications: 8 (linked to users)');
+        console.log('   • Search History: 15 (user searches)');
+        console.log('   • Carts: 3 (linked to buyers)');
+        console.log('   • Contacts: 4 (buyer-seller interactions)');
+        console.log('   • Recommendations: 15 (personalized suggestions)');
+        console.log('   • Social Shares: 18+ (platform tracking)');
+        console.log('   • Contacts: 4 (buyer-seller interactions)');
         console.log('');
         
         process.exit(0);

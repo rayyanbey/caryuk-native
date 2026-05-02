@@ -14,6 +14,20 @@ const verifyJWT = require('../middleware/verifyJWT');
 router.get('/', carsController.getAllCars);
 
 /**
+ * GET POPULAR CARS
+ * GET /api/cars/popular
+ * Query: { limit }
+ */
+router.get('/popular', carsController.getPopularCars);
+
+/**
+ * GET TRENDING CARS
+ * GET /api/cars/trending
+ * Query: { limit }
+ */
+router.get('/trending', carsController.getTrendingCars);
+
+/**
  * GET CAR BY ID
  * GET /api/cars/:id
  */
