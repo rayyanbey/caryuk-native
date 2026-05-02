@@ -24,9 +24,9 @@
 
 ## 🔐 AUTHENTICATION
 
-### 1. Register User
+### 1. Signup User
 ```
-POST /auth/register
+POST /auth/signup
 ```
 
 **Request Body:**
@@ -141,7 +141,7 @@ POST /auth/google
 
 ### 4. Refresh Token
 ```
-POST /auth/refresh
+POST /auth/refresh-token
 ```
 
 **Headers:**
@@ -416,7 +416,7 @@ Headers: Authorization: Bearer {token}
 
 ### 8. Get My Cars (Seller)
 ```
-GET /cars/my-cars
+GET /cars/user/my-cars
 Headers: Authorization: Bearer {token}
 ```
 
@@ -480,7 +480,7 @@ Headers: Authorization: Bearer {token}
 
 ### 2. Add to Cart
 ```
-POST /cart/add
+POST /cart
 Headers: Authorization: Bearer {token}
 ```
 
@@ -509,15 +509,8 @@ Headers: Authorization: Bearer {token}
 
 ### 3. Remove from Cart
 ```
-POST /cart/remove
+DELETE /cart/:carId
 Headers: Authorization: Bearer {token}
-```
-
-**Request Body:**
-```json
-{
-  "carId": "64car123..."
-}
 ```
 
 **Response (200):**
@@ -607,16 +600,8 @@ Headers: Authorization: Bearer {token}
 
 ### 1. Initiate Phone Call
 ```
-POST /contact/phone
+POST /contact/phone/:carId
 Headers: Authorization: Bearer {token}
-```
-
-**Request Body:**
-```json
-{
-  "carId": "64car123...",
-  "sellerId": "64seller123..."
-}
 ```
 
 **Response (201):**
@@ -636,15 +621,13 @@ Headers: Authorization: Bearer {token}
 
 ### 2. Initiate SMS
 ```
-POST /contact/sms
+POST /contact/sms/:carId
 Headers: Authorization: Bearer {token}
 ```
 
 **Request Body:**
 ```json
 {
-  "carId": "64car123...",
-  "sellerId": "64seller123...",
   "message": "Are you still selling this car?"
 }
 ```
@@ -1282,7 +1265,7 @@ Headers: Authorization: Bearer {token}
 
 ### 3. Get Trending Searches
 ```
-GET /search-history/trending
+GET /search-history/trending/global
 ```
 
 **Response (200):**

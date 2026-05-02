@@ -33,9 +33,9 @@
               "raw": "{\n  \"name\": \"Ali Khan\",\n  \"email\": \"ali@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"phone\": \"03001234567\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/register",
+              "raw": "{{baseUrl}}/auth/signup",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "path": ["auth", "signup"]
             }
           },
           "response": []
@@ -95,9 +95,9 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/refresh",
+              "raw": "{{baseUrl}}/auth/refresh-token",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "refresh"]
+              "path": ["auth", "refresh-token"]
             }
           },
           "response": []
@@ -362,9 +362,9 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/cars/my-cars",
+              "raw": "{{baseUrl}}/cars/user/my-cars",
               "host": ["{{baseUrl}}"],
-              "path": ["cars", "my-cars"]
+              "path": ["cars", "user", "my-cars"]
             }
           },
           "response": []
@@ -411,9 +411,9 @@
               "raw": "{\n  \"carId\": \"64car123\",\n  \"notes\": \"Interested in this car\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/cart/add",
+              "raw": "{{baseUrl}}/cart",
               "host": ["{{baseUrl}}"],
-              "path": ["cart", "add"]
+              "path": ["cart"]
             }
           },
           "response": []
@@ -421,25 +421,17 @@
         {
           "name": "Remove from Cart",
           "request": {
-            "method": "POST",
+            "method": "DELETE",
             "header": [
               {
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"carId\": \"64car123\"\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/cart/remove",
+              "raw": "{{baseUrl}}/cart/:carId",
               "host": ["{{baseUrl}}"],
-              "path": ["cart", "remove"]
+              "path": ["cart", ":carId"]
             }
           },
           "response": []
@@ -519,20 +511,12 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"carId\": \"64car123\",\n  \"sellerId\": \"64seller123\"\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/contact/phone",
+              "raw": "{{baseUrl}}/contact/phone/:carId",
               "host": ["{{baseUrl}}"],
-              "path": ["contact", "phone"]
+              "path": ["contact", "phone", ":carId"]
             }
           },
           "response": []
@@ -553,12 +537,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"carId\": \"64car123\",\n  \"sellerId\": \"64seller123\",\n  \"message\": \"Are you still selling this car?\"\n}"
+              "raw": "{\n  \"message\": \"Are you still selling this car?\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/contact/sms",
+              "raw": "{{baseUrl}}/contact/sms/:carId",
               "host": ["{{baseUrl}}"],
-              "path": ["contact", "sms"]
+              "path": ["contact", "sms", ":carId"]
             }
           },
           "response": []
@@ -1086,9 +1070,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/search-history/trending",
+              "raw": "{{baseUrl}}/search-history/trending/global",
               "host": ["{{baseUrl}}"],
-              "path": ["search-history", "trending"]
+              "path": ["search-history", "trending", "global"]
             }
           },
           "response": []
