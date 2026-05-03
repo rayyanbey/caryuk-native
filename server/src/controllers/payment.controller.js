@@ -42,9 +42,67 @@ const createPaymentIntent = async (req, res, next) => {
             });
         }
 
+        const orderAmount = Number(order.amount); // Stored in PKR major units.
+        const stripeCurrency = PAYMENT_CURRENCY || 'usd';
+        const pkrPerUsd = Number(process.env.PKR_PER_USD || 280);
+        const stripeMaxAmount = Number(process.env.STRIPE_MAX_AMOUNT || 99999999);
+
+        let stripeAmount;
+        let amountMultiplierUsed;
+
+        if (stripeCurrency === 'usd') {
+            if (!Number.isFinite(pkrPerUsd) || pkrPerUsd <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid PKR_PER_USD conversion rate configuration'
+                });
+            }
+
+            const usdAmount = orderAmount / pkrPerUsd;
+            stripeAmount = Math.round(usdAmount * 100); // USD cents
+            amountMultiplierUsed = Number((100 / pkrPerUsd).toFixed(6));
+        } else if (stripeCurrency === 'pkr') {
+            stripeAmount = Math.round(orderAmount * 100); // PKR paisa
+            amountMultiplierUsed = 100;
+        } else {
+            return res.status(400).json({
+                success: false,
+                error: `Unsupported Stripe currency: ${stripeCurrency}`
+            });
+        }
+
+        if (!Number.isFinite(orderAmount) || orderAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid order amount for Stripe payment'
+            });
+        }
+
+        if (!Number.isFinite(stripeAmount) || stripeAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid computed Stripe amount'
+            });
+        }
+
+        if (stripeAmount > stripeMaxAmount) {
+            return res.status(400).json({
+                success: false,
+                error: `Amount cannot be greater than ${stripeMaxAmount} in Stripe minor units for ${stripeCurrency.toUpperCase()}`,
+                details: {
+                    orderAmount,
+                    stripeAmount,
+                    maxAllowed: stripeMaxAmount,
+                    stripeCurrency,
+                    amountMultiplierUsed,
+                    pkrPerUsd: stripeCurrency === 'usd' ? pkrPerUsd : undefined
+                }
+            });
+        }
+
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(order.amount * 100),
-            currency: 'pkr',
+            amount: stripeAmount,
+            currency: stripeCurrency,
             description: `Payment for ${order.car.title}`,
             metadata: {
                 orderId: orderId,
@@ -57,8 +115,9 @@ const createPaymentIntent = async (req, res, next) => {
             data: {
                 clientSecret: paymentIntent.client_secret,
                 paymentIntentId: paymentIntent.id,
-                amount: order.amount,
-                currency: 'pkr'
+                amount: orderAmount,
+                currency: stripeCurrency,
+                amountMultiplierUsed
             }
         });
     } catch (error) {
@@ -529,17 +588,39 @@ const initializeCheckout = async (req, res, next) => {
         }
 
         try {
+            const orderAmount = Number(order.amount); // PKR major
+            const stripeCurrency = PAYMENT_CURRENCY || 'usd';
+            const pkrPerUsd = Number(process.env.PKR_PER_USD || 280);
+
+            let unitAmount;
+            if (stripeCurrency === 'usd') {
+                if (!Number.isFinite(pkrPerUsd) || pkrPerUsd <= 0) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'Invalid PKR_PER_USD conversion rate configuration'
+                    });
+                }
+                unitAmount = Math.round((orderAmount / pkrPerUsd) * 100);
+            } else if (stripeCurrency === 'pkr') {
+                unitAmount = Math.round(orderAmount * 100);
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    error: `Unsupported Stripe currency: ${stripeCurrency}`
+                });
+            }
+
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
                 line_items: [
                     {
                         price_data: {
-                            currency: 'pkr',
+                            currency: stripeCurrency,
                             product_data: {
                                 name: order.car.title,
                                 description: `Car purchase - Order ${orderId}`
                             },
-                            unit_amount: Math.round(order.amount * 100)
+                            unit_amount: unitAmount
                         },
                         quantity: 1
                     }

@@ -244,8 +244,16 @@ class ApiService {
     return this.api.post('/orders', data);
   }
 
-  async createPaymentIntent(amount: number) {
-    return this.api.post('/payment/create-intent', { amount });
+  async createPaymentIntent(orderId: string) {
+    return this.api.post('/payment/create-intent', { orderId });
+  }
+
+  async confirmStripePayment(orderId: string, paymentIntentId: string) {
+    return this.api.post('/payment/confirm', { orderId, paymentIntentId });
+  }
+
+  async getStripePublicKey() {
+    return this.api.get('/payment/public-key');
   }
 
   async getSearchHistory() {

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,12 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import {
+  CardField,
+  CardFieldInput,
+  StripeProvider,
+  useStripe,
+} from '@stripe/stripe-react-native';
 import { colors, theme } from '@/constants/colors';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
@@ -26,12 +32,15 @@ const VOUCHERS: { [key: string]: number } = {
   'RAYYAN': 0.50,     // 50% off (Special)
 };
 
-export default function PaymentScreen() {
+function PaymentScreenContent() {
   const router = useRouter();
+  const { confirmPayment } = useStripe();
   const { items, getTotalPrice, clearCart, removeFromCart } = useCartStore();
   const { user, updateUser } = useAuthStore();
   const [voucher, setVoucher] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [isPaying, setIsPaying] = useState(false);
+  const [cardDetails, setCardDetails] = useState<CardFieldInput.Details | null>(null);
   
   const subtotal = getTotalPrice();
   const currentAddress = user?.address || '123 Main Street, Suite 100, New York, NY 10001, USA';
@@ -45,6 +54,42 @@ export default function PaymentScreen() {
   }, [subtotal, discountAmount]);
 
   const finalTotal = subtotal - discountAmount + taxAmount;
+
+  const getApiErrorMessage = (error: unknown, fallback: string) => {
+    const maybeAxios = error as {
+      response?: {
+        data?: {
+          error?: string | { message?: string };
+          message?: string;
+          details?: {
+            orderAmount?: number;
+            stripeAmount?: number;
+            maxAllowed?: number;
+            configuredMultiplier?: number;
+            amountMultiplierUsed?: number;
+          };
+        };
+      };
+      message?: string;
+    };
+
+    const data = maybeAxios?.response?.data;
+    const details = data?.details;
+
+    const withDetails = (base: string) => {
+      if (!details || details.stripeAmount === undefined || details.maxAllowed === undefined) {
+        return base;
+      }
+
+      return `${base} (order: ${details.orderAmount}, stripe: ${details.stripeAmount}, max: ${details.maxAllowed}, multiplier: ${details.amountMultiplierUsed ?? details.configuredMultiplier ?? 'n/a'})`;
+    };
+
+    if (typeof data?.error === 'string' && data.error) return withDetails(data.error);
+    if (typeof data?.error === 'object' && data.error?.message) return withDetails(data.error.message);
+    if (data?.message) return withDetails(data.message);
+    if (maybeAxios?.message) return maybeAxios.message;
+    return fallback;
+  };
 
   const handleApplyVoucher = () => {
     const code = voucher.trim().toUpperCase();
@@ -79,13 +124,90 @@ export default function PaymentScreen() {
   };
 
   const handleConfirmPayment = async () => {
-    if (items.length === 0) return;
+    if (items.length === 0 || isPaying) return;
+    if (!cardDetails?.complete) {
+      Alert.alert('Card Required', 'Please enter complete card details to continue.');
+      return;
+    }
+
+    setIsPaying(true);
     try {
-      // Delete cars from DB as they are now sold
-      await Promise.all(
-        items.map(item => apiService.finalizePurchase(item.car.id || item.car._id || ''))
-      );
-      
+      for (const [index, item] of items.entries()) {
+        const carId = item.car.id || item.car._id;
+        if (!carId) {
+          throw new Error('Missing car identifier in cart item.');
+        }
+
+        let orderResponse;
+        try {
+          orderResponse = await apiService.createOrder({
+            carId,
+            voucherCode: appliedDiscount > 0 && index === 0 ? voucher.trim().toUpperCase() : undefined,
+          });
+        } catch (orderError) {
+          const orderMessage = getApiErrorMessage(orderError, 'Failed to create order.');
+
+          // Frontend has demo voucher codes that may not exist in backend DB.
+          if (appliedDiscount > 0 && /voucher/i.test(orderMessage)) {
+            orderResponse = await apiService.createOrder({ carId });
+            setAppliedDiscount(0);
+            setVoucher('');
+            Alert.alert('Voucher Ignored', 'This voucher is not available on server. Payment will continue without voucher.');
+          } else {
+            throw new Error(orderMessage);
+          }
+        }
+
+        const orderId = orderResponse.data?.data?._id || orderResponse.data?.data?.id;
+
+        if (!orderId) {
+          throw new Error('Failed to create order for payment.');
+        }
+
+        const intentResponse = await apiService.createPaymentIntent(orderId);
+        const clientSecret = intentResponse.data?.data?.clientSecret;
+        const paymentIntentId = intentResponse.data?.data?.paymentIntentId;
+
+        if (!clientSecret) {
+          throw new Error('Payment intent was created without a client secret.');
+        }
+
+        const { error, paymentIntent } = await confirmPayment(clientSecret, {
+          paymentMethodType: 'Card',
+          paymentMethodData: {
+            billingDetails: {
+              name: user?.name || 'Caryuk Buyer',
+              email: user?.email,
+              phone: user?.phone,
+              address: {
+                line1: currentAddress,
+              },
+            },
+          },
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Stripe payment failed.');
+        }
+
+        const confirmedPaymentIntentId = paymentIntent?.id || paymentIntentId;
+        if (!confirmedPaymentIntentId) {
+          throw new Error('Missing confirmed payment intent id.');
+        }
+
+        try {
+          await apiService.confirmStripePayment(orderId, confirmedPaymentIntentId);
+        } catch (confirmError) {
+          throw new Error(getApiErrorMessage(confirmError, 'Failed to confirm payment on server.'));
+        }
+
+        try {
+          await apiService.finalizePurchase(carId);
+        } catch (finalizeError) {
+          throw new Error(getApiErrorMessage(finalizeError, 'Payment succeeded, but purchase finalization failed.'));
+        }
+      }
+
       await clearCart();
       Alert.alert(
         'Payment Successful',
@@ -94,7 +216,10 @@ export default function PaymentScreen() {
       );
     } catch (error) {
       console.error('Payment confirmation error:', error);
-      Alert.alert('Error', 'Failed to process payment. Please try again.');
+      const message = getApiErrorMessage(error, 'Failed to process payment. Please try again.');
+      Alert.alert('Payment Failed', message);
+    } finally {
+      setIsPaying(false);
     }
   };
 
@@ -228,24 +353,22 @@ export default function PaymentScreen() {
           {/* Payment Card */}
           <View style={styles.cardSection}>
             <Text style={styles.sectionTitle}>Payment Method</Text>
-            <View style={styles.creditCard}>
-              <View style={styles.cardTop}>
-                <View style={styles.chip} />
-                <Text style={styles.cardIssuer}>VISA</Text>
-              </View>
-              
-              <Text style={styles.cardNumber}>1234  5555  6464  4444</Text>
-              
-              <View style={styles.cardBottom}>
-                <View>
-                  <Text style={styles.cardLabel}>CARD HOLDER</Text>
-                  <Text style={styles.cardHolder}>PAUL WALKER</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.cardLabel}>EXPIRES</Text>
-                  <Text style={styles.cardExpiry}>08/37</Text>
-                </View>
-              </View>
+            <View style={styles.stripeCardContainer}>
+              <Text style={styles.cardHint}>Enter your card details</Text>
+              <CardField
+                postalCodeEnabled
+                placeholders={{
+                  number: '4242 4242 4242 4242',
+                }}
+                cardStyle={{
+                  backgroundColor: colors.white,
+                  textColor: colors.dark,
+                  placeholderColor: colors.textSecondary,
+                  borderRadius: 12,
+                }}
+                style={styles.cardField}
+                onCardChange={setCardDetails}
+              />
             </View>
           </View>
 
@@ -312,14 +435,74 @@ export default function PaymentScreen() {
         <View style={styles.bottomBar}>
           <TouchableOpacity
             onPress={handleConfirmPayment}
-            style={[styles.confirmButton, items.length === 0 && { opacity: 0.5 }]}
-            disabled={items.length === 0}
+            style={[
+              styles.confirmButton,
+              (items.length === 0 || !cardDetails?.complete || isPaying) && { opacity: 0.5 },
+            ]}
+            disabled={items.length === 0 || !cardDetails?.complete || isPaying}
           >
-            <Text style={styles.confirmButtonText}>Confirm Payment</Text>
+            <Text style={styles.confirmButtonText}>{isPaying ? 'Processing...' : 'Confirm Payment'}</Text>
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
+  );
+}
+
+export default function PaymentScreen() {
+  const [publishableKey, setPublishableKey] = useState('');
+  const [isStripeReady, setIsStripeReady] = useState(false);
+
+  const loadStripeKey = useCallback(async () => {
+    setIsStripeReady(false);
+    try {
+      const response = await apiService.getStripePublicKey();
+      const key = response.data?.data?.publicKey;
+      if (!key) {
+        throw new Error('Stripe public key is missing.');
+      }
+
+      setPublishableKey(key);
+    } catch (error) {
+      console.error('Failed to load Stripe key:', error);
+      setPublishableKey('');
+      Alert.alert('Stripe Error', 'Unable to initialize Stripe. Please try again.');
+    } finally {
+      setIsStripeReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStripeKey();
+  }, [loadStripeKey]);
+
+  if (!isStripeReady) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loaderContainer}>
+          <Text style={styles.loadingText}>Loading secure payment...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!publishableKey) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loaderContainer}>
+          <Text style={styles.loadingText}>Stripe is unavailable right now.</Text>
+          <TouchableOpacity onPress={loadStripeKey} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <StripeProvider publishableKey={publishableKey}>
+      <PaymentScreenContent />
+    </StripeProvider>
   );
 }
 
@@ -534,64 +717,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
-  creditCard: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 20,
-    padding: 24,
-    height: 200,
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+  stripeCardContainer: {
+    borderRadius: theme.borderRadius.card,
+    padding: 16,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.mediumGray,
   },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  cardHint: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 10,
   },
-  chip: {
-    width: 45,
-    height: 35,
-    backgroundColor: '#FFD700',
-    borderRadius: 6,
-    opacity: 0.8,
-  },
-  cardIssuer: {
-    color: colors.white,
-    fontSize: 20,
-    fontWeight: 'bold',
-    fontStyle: 'italic',
-  },
-  cardNumber: {
-    color: colors.white,
-    fontSize: 22,
-    letterSpacing: 2,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  cardBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  cardLabel: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 9,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  cardHolder: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  cardExpiry: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: 'bold',
+  cardField: {
+    width: '100%',
+    height: 52,
   },
   voucherSection: {
     paddingHorizontal: 20,
@@ -689,6 +829,27 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: colors.white,
     fontSize: 16,
+    fontWeight: theme.fontWeights.bold,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    marginBottom: 12,
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: theme.borderRadius.pill,
+  },
+  retryButtonText: {
+    color: colors.white,
     fontWeight: theme.fontWeights.bold,
   },
 });
