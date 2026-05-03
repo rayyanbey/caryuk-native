@@ -7,6 +7,7 @@ const UserSchema = new Schema({
   password:     { type: String },               // null for OAuth users
   avatarUrl:    { type: String },
   phone:        { type: String },
+  address:      { type: String },
   provider:     { type: String, enum: ['local', 'google'], default: 'local' },
   providerId:   { type: String },               // OAuth provider UID
   favourites:   [{ type: Schema.Types.ObjectId, ref: 'Car' }],

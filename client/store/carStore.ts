@@ -4,6 +4,23 @@ import { apiService } from '@/service/api';
 export interface Car {
   _id?: string;
   id?: string;
+  // Backend fields
+  title?: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  images?: string[];
+  features?: string[];
+  views?: number;
+  status?: string;
+  seller?: {
+    _id?: string;
+    name?: string;
+    email?: string;
+    avatarUrl?: string;
+    phone?: string;
+  };
+  // Normalized frontend fields
   name: string;
   price: number;
   image?: string;
@@ -45,7 +62,7 @@ interface CarStore {
   isFavorite: (id: string) => boolean;
   searchCars: (query: string) => void;
   filterByBudget: (budget: string) => void;
-  applyFilters: (category?: string, budget?: string) => void;
+  applyFilters: (category?: string, budget?: string, fuelType?: string, transmission?: string) => void;
   clearFilters: () => void;
   getCars: () => Car[];
   searchHistory: string[];
@@ -182,14 +199,30 @@ export const useCarStore = create<CarStore>((set, get) => ({
       const apiCars = response.data.data || response.data;
       let normalizedCars = Array.isArray(apiCars) ? apiCars : mockCars;
       
-      // Ensure all cars have required frontend fields, mapping from MongoDB schema
       normalizedCars = normalizedCars.map((car: any) => ({ 
         ...car, 
         id: car.id || car._id,
-        name: car.name || car.title || `${car.brand} ${car.model}`,
+        name: car.name || car.title || `${car.brand || ''} ${car.model || ''}`.trim(),
         rating: typeof car.rating === 'number' ? car.rating : 5.0,
+        reviews: typeof car.reviews === 'number' ? car.reviews : car.views || 0,
         price: typeof car.price === 'number' ? car.price : 0,
-        image: car.image || '🚗'
+        image: car.image || (car.images && car.images.length > 0 ? car.images[0] : '🚗'),
+        mileage: car.mileage ? `${car.mileage}km` : 'N/A',
+        seats: car.seats || 4,
+        fuelType: car.fuelType || 'Petrol',
+        transmission: car.transmission || 'Auto',
+        category: car.category || 'Sedan',
+        description: car.description || 'No description available.',
+        color: car.color || '',
+        owner: car.owner || (car.seller ? {
+          name: car.seller.name || 'Seller',
+          role: 'Verified Dealer',
+          avatar: car.seller.name?.charAt(0) || 'S',
+        } : {
+          name: 'Caryuk Store',
+          role: 'Owner',
+          avatar: 'C',
+        }),
       }));
       
       set({ cars: normalizedCars, filteredCars: normalizedCars, isLoading: false });
@@ -262,7 +295,12 @@ export const useCarStore = create<CarStore>((set, get) => ({
   },
 
   filterByBudget: (budget: string) => {
-    get().applyFilters(get().selectedCategory, budget);
+    const currentBudget = get().selectedBudget;
+    if (currentBudget === budget) {
+      get().applyFilters(get().selectedCategory, '');
+    } else {
+      get().applyFilters(get().selectedCategory, budget);
+    }
   },
 
   applyFilters: (category?: string, budget?: string, fuelType?: string, transmission?: string) => {
@@ -274,22 +312,18 @@ export const useCarStore = create<CarStore>((set, get) => ({
       
       let filtered = state.cars;
       
-      // Filter by Category
       if (newCategory) {
         filtered = filtered.filter((car) => car.category === newCategory);
       }
       
-      // Filter by Fuel Type
       if (newFuelType) {
         filtered = filtered.filter((car) => car.fuelType === newFuelType);
       }
 
-      // Filter by Transmission
       if (newTransmission) {
         filtered = filtered.filter((car) => car.transmission === newTransmission);
       }
 
-      // Filter by Budget
       if (newBudget) {
         if (newBudget === 'Under $30k' || newBudget === 'Under $20k') {
           const limit = newBudget === 'Under $30k' ? 30000 : 20000;

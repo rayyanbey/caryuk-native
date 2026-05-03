@@ -1,47 +1,19 @@
-/**
- * Upload error handling middleware
- * Catches multer and other upload errors
- */
-const uploadErrorHandler = (err, req, res, next) => {
-    // Multer errors
-    if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({
-            success: false,
-            error: 'File too large. Maximum size is 5MB.'
-        });
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../utils/uploadService').cloudinary;
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'caryuk/profiles',
+        allowed_formats: ['jpg', 'png', 'jpeg'],
+        transformation: [{ width: 500, height: 500, crop: 'limit' }]
     }
+});
 
-    if (err.code === 'LIMIT_FILE_COUNT') {
-        return res.status(400).json({
-            success: false,
-            error: 'Too many files. Maximum is 10 files per upload.'
-        });
-    }
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
-    if (err.code === 'LIMIT_PART_COUNT') {
-        return res.status(400).json({
-            success: false,
-            error: 'Too many parts in form data.'
-        });
-    }
-
-    if (err.message === 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.') {
-        return res.status(400).json({
-            success: false,
-            error: err.message
-        });
-    }
-
-    // Other errors
-    if (err) {
-        console.error('Upload error:', err);
-        return res.status(400).json({
-            success: false,
-            error: err.message || 'Upload failed'
-        });
-    }
-
-    next();
-};
-
-module.exports = uploadErrorHandler;
+module.exports = upload;

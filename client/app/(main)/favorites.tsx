@@ -9,6 +9,7 @@ import {
   Platform,
   StatusBar,
   Image,
+  BackHandler,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, theme } from '@/constants/colors';
@@ -23,6 +24,20 @@ export default function FavoritesScreen() {
   );
 
   const favoritedCars = cars.filter((car) => favorites.includes(car.id));
+
+  React.useEffect(() => {
+    const backAction = () => {
+      router.push('/home');
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [router]);
 
   const handleTabPress = (tab: 'home' | 'search' | 'favorites' | 'profile') => {
     setActiveTab(tab);
@@ -40,13 +55,15 @@ export default function FavoritesScreen() {
       <View style={styles.content}>
         {/* AppBar */}
         <View style={styles.appBar}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backIcon}>←</Text>
+          <TouchableOpacity onPress={() => router.push('/home')} style={styles.backButton}>
+            <Image 
+              source={require('../../assets/images/arrow_back.png')} 
+              style={styles.backIconImage} 
+              resizeMode="contain" 
+            />
           </TouchableOpacity>
           <Text style={styles.title}>Favorites</Text>
-          <TouchableOpacity>
-            <Text style={styles.menuIcon}>⋮</Text>
-          </TouchableOpacity>
+          <View style={{ width: 24 }} />
         </View>
 
         {/* Car List */}
@@ -64,14 +81,28 @@ export default function FavoritesScreen() {
         ) : (
           <FlatList
             data={favoritedCars}
-            keyExtractor={(item, index) => item._id || item.id || index.toString()}
+            keyExtractor={(item) => item.id || item._id || Math.random().toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => router.push(`/car-detail?id=${item.id}`)}
+                onPress={() => {
+                  const id = item.id || item._id;
+                  if (id) {
+                    router.push(`/car-detail?id=${id}`);
+                  }
+                }}
                 style={styles.carItem}
               >
                 <View style={styles.imageContainer}>
-                  <Text style={styles.emoji}>{item.image}</Text>
+                  {item.image?.startsWith('http') ? (
+                    <Image 
+                      source={{ uri: item.image }} 
+                      style={styles.fullItemImage} 
+                      resizeMode="cover" 
+                    />
+                  ) : (
+                    <Text style={styles.emoji}>{item.image || '🚗'}</Text>
+                  )}
+                  
                   <TouchableOpacity
                     onPress={() => toggleFavorite(item.id)}
                     style={styles.favoriteIcon}
@@ -82,15 +113,15 @@ export default function FavoritesScreen() {
                       resizeMode="contain" 
                     />
                   </TouchableOpacity>
-                </View>
 
-                <View style={styles.carInfo}>
-                  <View style={styles.ratingRow}>
-                    <Text style={styles.star}>⭐</Text>
-                    <Text style={styles.rating}>{(typeof item.rating === 'number' ? item.rating : 5.0).toFixed(1)}</Text>
+                  <View style={styles.carInfo}>
+                    <View style={styles.ratingRow}>
+                      <Text style={styles.star}>⭐</Text>
+                      <Text style={styles.rating}>{(typeof item.rating === 'number' ? item.rating : 5.0).toFixed(1)}</Text>
+                    </View>
+                    <Text style={styles.carName}>{item.name}</Text>
+                    <Text style={styles.price}>${((typeof item.price === 'number' ? item.price : 0) / 1000).toFixed(0)}K</Text>
                   </View>
-                  <Text style={styles.carName}>{item.name}</Text>
-                  <Text style={styles.price}>${((typeof item.price === 'number' ? item.price : 0) / 1000).toFixed(0)}K</Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -102,7 +133,7 @@ export default function FavoritesScreen() {
         )}
 
         {/* Spacer for tab bar */}
-        <View style={{ height: 80 }} />
+        <View style={{ height: 100 }} />
       </View>
 
       <TabBar activeTab={activeTab} onTabPress={handleTabPress} />
@@ -126,16 +157,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  backIcon: {
-    fontSize: 20,
+  backButton: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIconImage: {
+    width: 24,
+    height: 24,
+    tintColor: colors.dark,
   },
   title: {
     fontSize: 18,
     fontWeight: theme.fontWeights.bold,
     color: colors.dark,
-  },
-  menuIcon: {
-    fontSize: 20,
   },
   emptyContainer: {
     flex: 1,
@@ -170,12 +206,12 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 80,
+    paddingBottom: 120,
   },
   carItem: {
     backgroundColor: colors.mediumGray,
     borderRadius: theme.borderRadius.card,
-    height: 140,
+    height: 160, // Slightly taller for premium feel
     overflow: 'hidden',
     position: 'relative',
   },
@@ -187,51 +223,61 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   emoji: {
-    fontSize: 50,
+    fontSize: 60,
+  },
+  fullItemImage: {
+    width: '100%',
+    height: '100%',
   },
   favoriteIcon: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    top: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 10,
   },
   carInfo: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    padding: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)', // Translucent overlay
+    padding: 12,
+    paddingBottom: 16,
   },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   star: {
     fontSize: 12,
     marginRight: 4,
   },
   rating: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: theme.fontWeights.bold,
     color: colors.white,
-    marginRight: 8,
   },
   carName: {
-    fontSize: 12,
-    fontWeight: theme.fontWeights.bold,
+    fontSize: 18,
+    fontWeight: theme.fontWeights.black,
     color: colors.white,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   price: {
-    fontSize: 12,
-    fontWeight: theme.fontWeights.black,
+    fontSize: 16,
+    fontWeight: theme.fontWeights.bold,
     color: colors.white,
   },
 });

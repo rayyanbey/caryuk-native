@@ -1,35 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
+  FlatList,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, theme } from '@/constants/colors';
+
+const { width, height } = Dimensions.get('window');
 
 const onboardingData = [
   {
     id: 1,
     title: 'Find Your Perfect Ride',
     subtitle: 'Post Your Car in Minutes. Sell Smart. Sell With Speed.',
+    emoji: '🚗',
   },
   {
     id: 2,
     title: 'Sell It. Fast & Easy.',
     subtitle: 'Secure Transactions And Real Buyers.',
+    emoji: '⚡',
   },
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
 
   const handleNext = () => {
     if (currentStep < onboardingData.length - 1) {
-      setCurrentStep(currentStep + 1);
+      flatListRef.current?.scrollToIndex({
+        index: currentStep + 1,
+        animated: true,
+      });
     } else {
       router.replace('/sign-in');
     }
@@ -39,7 +50,32 @@ export default function OnboardingScreen() {
     router.replace('/sign-in');
   };
 
-  const data = onboardingData[currentStep];
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    if (roundIndex !== currentStep) {
+      setCurrentStep(roundIndex);
+    }
+  };
+
+  const renderItem = ({ item }: { item: typeof onboardingData[0] }) => (
+    <View style={styles.slide}>
+      {/* Image Area with fixed height to ensure consistency */}
+      <View style={styles.imageArea}>
+        <Text style={styles.imagePlaceholder}>{item.emoji}</Text>
+      </View>
+
+      {/* Bottom Content */}
+      <View style={styles.contentSection}>
+        {/* Headline */}
+        <Text style={styles.headline}>{item.title}</Text>
+
+        {/* Subtext */}
+        <Text style={styles.subtext}>{item.subtitle}</Text>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -56,22 +92,20 @@ export default function OnboardingScreen() {
         ))}
       </View>
 
-      {/* Image Area */}
-      <View style={styles.imageArea}>
-        <Text style={styles.imagePlaceholder}>
-          {currentStep === 0 ? '🚗' : '⚡'}
-        </Text>
-      </View>
+      <FlatList
+        ref={flatListRef}
+        data={onboardingData}
+        renderItem={renderItem}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onScroll}
+        keyExtractor={(item) => item.id.toString()}
+        scrollEventThrottle={16}
+      />
 
-      {/* Bottom Content */}
-      <View style={styles.contentSection}>
-        {/* Headline */}
-        <Text style={styles.headline}>{data.title}</Text>
-
-        {/* Subtext */}
-        <Text style={styles.subtext}>{data.subtitle}</Text>
-
-        {/* Bottom Action Row */}
+      {/* Fixed Action Row */}
+      <View style={styles.footer}>
         {currentStep === 0 ? (
           <View style={styles.actionRow}>
             <TouchableOpacity onPress={handleSkip}>
@@ -107,6 +141,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     gap: 6,
+    zIndex: 10,
   },
   progressBar: {
     height: 4,
@@ -119,13 +154,18 @@ const styles = StyleSheet.create({
   inactiveBar: {
     backgroundColor: colors.placeholder,
   },
-  imageArea: {
+  slide: {
+    width: width,
     flex: 1,
+  },
+  imageArea: {
+    height: height * 0.45, // Use fixed height percentage of screen instead of flex
     backgroundColor: colors.placeholder,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     marginTop: 20,
+    marginBottom: 40,
     borderRadius: theme.borderRadius.card,
   },
   imagePlaceholder: {
@@ -133,20 +173,7 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  badge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    borderRadius: theme.borderRadius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: theme.fontWeights.semibold,
-    color: colors.dark,
+    minHeight: 120, // Ensure text area has a consistent baseline
   },
   headline: {
     fontSize: 28,
@@ -159,6 +186,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
     marginBottom: 24,
+  },
+  footer: {
+    paddingHorizontal: 24,
+    paddingBottom: 80, // Lifted up further from 60
   },
   actionRow: {
     flexDirection: 'row',
@@ -182,6 +213,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: colors.white,
     fontWeight: theme.fontWeights.bold,
+    textAlign: 'center',
+    lineHeight: 22, // Nudged upwards
+    includeFontPadding: false,
   },
   ctaButton: {
     backgroundColor: colors.primary,

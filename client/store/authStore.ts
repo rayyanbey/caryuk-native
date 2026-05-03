@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  address?: string;
   avatarUrl?: string;
   location?: string;
   bio?: string;
@@ -23,6 +24,7 @@ interface AuthStore {
   signup: (name: string, email: string, password: string, confirmPassword: string, phone?: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
+  syncProfile: (updates: Partial<User>) => Promise<{ success: boolean; message?: string }>;
   restoreToken: () => Promise<void>;
   setError: (error: string | null) => void;
 }
@@ -91,6 +93,23 @@ export const useAuthStore = create<AuthStore>((set) => ({
       }
       return { user: updatedUser };
     });
+  },
+
+  syncProfile: async (updates: Partial<User>) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await apiService.updateUserProfile(updates);
+      const updatedUser = response.data.data;
+      
+      set({ user: updatedUser, isLoading: false });
+      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
+      
+      return { success: true, message: 'Profile updated successfully' };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Update failed';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, message: errorMessage };
+    }
   },
 
   restoreToken: async () => {

@@ -21,6 +21,27 @@ router.get('/profile', verifyJWT, userController.getProfile);
  */
 router.put('/profile', verifyJWT, userController.updateProfile);
 
+/**
+ * UPLOAD AVATAR
+ * POST /api/user/avatar
+ * Headers: Authorization: Bearer {token}
+ * Body: multipart/form-data { avatar }
+ */
+const upload = require('../middleware/upload');
+router.post('/avatar', verifyJWT, upload.single('avatar'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+    res.status(200).json({
+        success: true,
+        message: 'Avatar uploaded successfully',
+        data: {
+            url: req.file.path,
+            public_id: req.file.filename
+        }
+    });
+});
+
 // ============================================
 // FAVORITES MANAGEMENT - Before parameterized routes
 // ============================================

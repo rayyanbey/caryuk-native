@@ -31,35 +31,24 @@ export const useCartStore = create<CartStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const carId = car._id || car.id;
+      
+      const existingItem = get().items.find((item) => (item.car._id || item.car.id) === carId);
+      if (existingItem) {
+        set({ isLoading: false });
+        return; // Already in cart, do nothing
+      }
+
       await apiService.addToCart(carId, 1);
 
-      set((state) => {
-        const existingItem = state.items.find((item) => (item.car._id || item.car.id) === carId);
-        if (existingItem) {
-          return {
-            items: state.items.map((item) =>
-              (item.car._id || item.car.id) === carId ? { ...item, quantity: item.quantity + 1 } : item
-            ),
-            isLoading: false,
-          };
-        }
-        return {
-          items: [...state.items, { car, quantity: 1, addedAt: new Date() }],
-          isLoading: false,
-        };
-      });
+      set((state) => ({
+        items: [...state.items, { car, quantity: 1, addedAt: new Date() }],
+        isLoading: false,
+      }));
     } catch (error: any) {
       console.warn('Failed to add to cart via API, using local state:', error.message);
       set((state) => {
         const existingItem = state.items.find((item) => (item.car._id || item.car.id) === (car._id || car.id));
-        if (existingItem) {
-          return {
-            items: state.items.map((item) =>
-              (item.car._id || item.car.id) === (car._id || car.id) ? { ...item, quantity: item.quantity + 1 } : item
-            ),
-            isLoading: false,
-          };
-        }
+        if (existingItem) return { isLoading: false };
         return {
           items: [...state.items, { car, quantity: 1, addedAt: new Date() }],
           isLoading: false,

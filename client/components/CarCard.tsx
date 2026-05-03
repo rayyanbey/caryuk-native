@@ -24,7 +24,15 @@ export const CarCard: React.FC<CarCardProps> = ({ car, onPress, showDetails = fa
     >
       {/* Image Placeholder */}
       <View style={styles.imageContainer}>
-        <Text style={styles.emoji}>{car.image}</Text>
+        {car.image?.startsWith('http') ? (
+          <Image 
+            source={{ uri: car.image }} 
+            style={styles.fullImage} 
+            resizeMode="cover" 
+          />
+        ) : (
+          <Text style={styles.emoji}>{car.image || '🚗'}</Text>
+        )}
 
         {/* Heart Icon */}
         <TouchableOpacity
@@ -98,6 +106,11 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 40,
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: theme.borderRadius.card || 20,
   },
   heartIcon: {
     position: 'absolute',

@@ -1,4 +1,4 @@
-﻿import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000/api';
@@ -224,6 +224,14 @@ class ApiService {
     return this.api.put('/user/profile', data);
   }
 
+  async uploadAvatar(formData: FormData) {
+    return this.api.post('/user/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  }
+
   async getOrders() {
     return this.api.get('/orders');
   }
@@ -246,6 +254,10 @@ class ApiService {
 
   async addSearchHistory(query: string) {
     return this.api.post('/search-history', { query });
+  }
+
+  async finalizePurchase(carId: string) {
+    return this.api.post(`/cars/${carId}/purchase`);
   }
 }
 

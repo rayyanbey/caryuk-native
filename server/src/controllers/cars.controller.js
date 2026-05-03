@@ -337,12 +337,39 @@ const getTrendingCars = async (req, res, next) => {
     }
 };
 
+/**
+ * PURCHASE CAR (Delete after sale)
+ * POST /api/cars/:id/purchase
+ */
+const purchaseCar = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const car = await Car.findByIdAndDelete(id);
+
+        if (!car) {
+            return res.status(404).json({
+                success: false,
+                error: 'Car not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Car purchased and record removed'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAllCars,
     getCarById,
     createCar,
     updateCar,
     deleteCar,
+    purchaseCar,
     getMyCars,
     getPopularCars,
     getTrendingCars

@@ -66,4 +66,11 @@ router.put('/:id', verifyJWT, carsController.updateCar);
  */
 router.delete('/:id', verifyJWT, carsController.deleteCar);
 
+/**
+ * PURCHASE CAR (Delete after sale)
+ * POST /api/cars/:id/purchase
+ * Headers: Authorization: Bearer {token}
+ */
+router.post('/:id/purchase', verifyJWT, carsController.purchaseCar);
+
 module.exports = router;
