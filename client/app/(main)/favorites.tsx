@@ -8,6 +8,7 @@ import {
   FlatList,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, theme } from '@/constants/colors';
@@ -51,7 +52,13 @@ export default function FavoritesScreen() {
         {/* Car List */}
         {favoritedCars.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>❤️</Text>
+            <View style={styles.emptyIconWrapper}>
+              <Image 
+                source={require('../../assets/images/heart_icon_home.png')} 
+                style={styles.emptyIconImage} 
+                resizeMode="contain" 
+              />
+            </View>
             <Text style={styles.emptyText}>No favorites yet</Text>
           </View>
         ) : (
@@ -69,7 +76,11 @@ export default function FavoritesScreen() {
                     onPress={() => toggleFavorite(item.id)}
                     style={styles.favoriteIcon}
                   >
-                    <Text style={styles.heart}>❤️</Text>
+                    <Image 
+                      source={require('../../assets/images/heart_icon_home.png')} 
+                      style={{ width: 18, height: 18, tintColor: '#FF4444' }} 
+                      resizeMode="contain" 
+                    />
                   </TouchableOpacity>
                 </View>
 
@@ -130,13 +141,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingBottom: 100,
   },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
+  emptyIconWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  emptyIconImage: {
+    width: 40,
+    height: 40,
+    tintColor: colors.white,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: theme.fontWeights.semibold,
     color: colors.textSecondary,
   },
   listContent: {
@@ -172,15 +200,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  heart: {
-    fontSize: 16,
-  },
   carInfo: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     padding: 8,
   },
   ratingRow: {

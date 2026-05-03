@@ -89,7 +89,7 @@ export default function OnboardingScreen() {
             onPress={handleNext}
             style={styles.ctaButton}
           >
-            <Text style={styles.ctaButtonText}>Let's Get Started</Text>
+            <Text style={styles.ctaButtonText}>{"Let's Get Started"}</Text>
           </TouchableOpacity>
         )}
       </View>

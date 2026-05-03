@@ -31,6 +31,9 @@ interface CarStore {
   filteredCars: Car[];
   searchQuery: string;
   selectedBudget: string;
+  selectedCategory: string;
+  selectedFuelType: string;
+  selectedTransmission: string;
   isLoading: boolean;
   error: string | null;
   fetchCars: () => Promise<void>;
@@ -42,6 +45,8 @@ interface CarStore {
   isFavorite: (id: string) => boolean;
   searchCars: (query: string) => void;
   filterByBudget: (budget: string) => void;
+  applyFilters: (category?: string, budget?: string) => void;
+  clearFilters: () => void;
   getCars: () => Car[];
   searchHistory: string[];
   addSearchHistory: (query: string) => void;
@@ -153,6 +158,9 @@ export const useCarStore = create<CarStore>((set, get) => ({
   filteredCars: mockCars,
   searchQuery: '',
   selectedBudget: '',
+  selectedCategory: '',
+  selectedFuelType: '',
+  selectedTransmission: '',
   isLoading: false,
   error: null,
   searchHistory: ['Nissan GTR', 'Toyota Scar', 'Toyota Supra', 'Mazda RX-7', 'Supra MK4', 'Lancer Tokyo'],
@@ -254,19 +262,67 @@ export const useCarStore = create<CarStore>((set, get) => ({
   },
 
   filterByBudget: (budget: string) => {
+    get().applyFilters(get().selectedCategory, budget);
+  },
+
+  applyFilters: (category?: string, budget?: string, fuelType?: string, transmission?: string) => {
     set((state) => {
-      if (state.selectedBudget === budget) {
-        return { selectedBudget: '', filteredCars: state.cars };
-      }
+      const newCategory = category !== undefined ? category : state.selectedCategory;
+      const newBudget = budget !== undefined ? budget : state.selectedBudget;
+      const newFuelType = fuelType !== undefined ? fuelType : state.selectedFuelType;
+      const newTransmission = transmission !== undefined ? transmission : state.selectedTransmission;
       
       let filtered = state.cars;
-      if (budget === 'Under $30k') {
-        filtered = filtered.filter((car) => car.price < 30000);
-      } else if (budget === 'From $40k-90k') {
-        filtered = filtered.filter((car) => car.price >= 40000 && car.price <= 90000);
+      
+      // Filter by Category
+      if (newCategory) {
+        filtered = filtered.filter((car) => car.category === newCategory);
       }
-      return { selectedBudget: budget, filteredCars: filtered };
+      
+      // Filter by Fuel Type
+      if (newFuelType) {
+        filtered = filtered.filter((car) => car.fuelType === newFuelType);
+      }
+
+      // Filter by Transmission
+      if (newTransmission) {
+        filtered = filtered.filter((car) => car.transmission === newTransmission);
+      }
+
+      // Filter by Budget
+      if (newBudget) {
+        if (newBudget === 'Under $30k' || newBudget === 'Under $20k') {
+          const limit = newBudget === 'Under $30k' ? 30000 : 20000;
+          filtered = filtered.filter((car) => car.price < limit);
+        } else if (newBudget === 'From $40k-90k') {
+          filtered = filtered.filter((car) => car.price >= 40000 && car.price <= 90000);
+        } else if (newBudget === '$20k - $50k') {
+          filtered = filtered.filter((car) => car.price >= 20000 && car.price <= 50000);
+        } else if (newBudget === '$50k - $100k') {
+          filtered = filtered.filter((car) => car.price >= 50000 && car.price <= 100000);
+        } else if (newBudget === 'Above $100k') {
+          filtered = filtered.filter((car) => car.price > 100000);
+        }
+      }
+      
+      return { 
+        selectedCategory: newCategory, 
+        selectedBudget: newBudget, 
+        selectedFuelType: newFuelType,
+        selectedTransmission: newTransmission,
+        filteredCars: filtered 
+      };
     });
+  },
+
+  clearFilters: () => {
+    set((state) => ({
+      selectedCategory: '',
+      selectedBudget: '',
+      selectedFuelType: '',
+      selectedTransmission: '',
+      filteredCars: state.cars
+    }));
   },
 
   getCars: () => get().filteredCars,

@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { colors, theme } from '@/constants/colors';
-import { Car } from '@/store/carStore';
-import { useCarStore } from '@/store/carStore';
+import { Car, useCarStore } from '@/store/carStore';
 
 const { width } = Dimensions.get('window');
 export const CARD_SPACING = 16;

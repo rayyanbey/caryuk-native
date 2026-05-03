@@ -25,27 +25,38 @@ import { TabBar } from '@/components/TabBar';
 export default function HomeScreen() {
   const router = useRouter();
   const { user, updateUser } = useAuthStore();
-  const { cars, filterByBudget, searchCars, selectedBudget, fetchCars, isLoading } = useCarStore();
+  const { cars, filteredCars, filterByBudget, searchCars, selectedBudget, fetchCars, isLoading } = useCarStore();
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'favorites' | 'profile'>(
     'home'
   );
 
   useEffect(() => {
     fetchCars();
-    fetchLocation();
   }, []);
 
+  useEffect(() => {
+    if (user && (!user.location || user.location === 'Location')) {
+      fetchLocation();
+    }
+  }, [user]);
+
   const fetchLocation = async () => {
-    if (!user?.location || user?.location === 'Location') {
-      try {
-        const response = await axios.get('https://ipapi.co/json/');
-        if (response.data && response.data.city && response.data.country_name) {
-          const locationString = `${response.data.city}, ${response.data.country_name}`;
+    try {
+      // Try ip-api.com first as it is generally more permissive for dev
+      const response = await axios.get('http://ip-api.com/json');
+      if (response.data && response.data.status === 'success') {
+        const locationString = `${response.data.city}, ${response.data.country}`;
+        updateUser({ location: locationString });
+      } else {
+        // Fallback to ipapi.co
+        const res2 = await axios.get('https://ipapi.co/json/');
+        if (res2.data && res2.data.city) {
+          const locationString = `${res2.data.city}, ${res2.data.country_name}`;
           updateUser({ location: locationString });
         }
-      } catch (error) {
-        console.warn('Failed to fetch live location:', error);
       }
+    } catch (error) {
+      console.warn('Failed to fetch live location:', error);
     }
   };
 
@@ -93,9 +104,6 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Budget Category</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAll}>See all</Text>
-              </TouchableOpacity>
             </View>
 
             <View style={styles.budgetContainer}>
@@ -134,7 +142,7 @@ export default function HomeScreen() {
               <ActivityIndicator color={colors.primary} />
             ) : (
               <FlatList
-                data={cars}
+                data={filteredCars}
                 keyExtractor={(item, index) => item.id || item._id || index.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
@@ -150,6 +158,11 @@ export default function HomeScreen() {
                 snapToInterval={CARD_WIDTH + CARD_SPACING}
                 decelerationRate="fast"
                 snapToAlignment="start"
+                ListEmptyComponent={() => (
+                  <View style={styles.noResults}>
+                    <Text style={styles.noResultsText}>No cars found</Text>
+                  </View>
+                )}
               />
             )}
           </View>
@@ -259,16 +272,23 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   budgetPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: theme.borderRadius.pill,
+    flex: 1,
+    paddingVertical: 28,
+    borderRadius: theme.borderRadius.card,
     backgroundColor: colors.mediumGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   budgetPillActive: {
     backgroundColor: colors.primary,
   },
   budgetPillText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: theme.fontWeights.semibold,
     color: colors.dark,
   },
@@ -302,5 +322,21 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: colors.primary,
     width: 12,
+  },
+  noResults: {
+    width: CARD_WIDTH * 2 + CARD_SPACING,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: theme.borderRadius.card,
+    borderWidth: 1,
+    borderColor: colors.mediumGray,
+    borderStyle: 'dashed',
+  },
+  noResultsText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: theme.fontWeights.semibold,
   },
 });
