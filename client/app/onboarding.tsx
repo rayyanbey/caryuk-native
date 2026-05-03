@@ -15,13 +15,11 @@ const onboardingData = [
     id: 1,
     title: 'Find Your Perfect Ride',
     subtitle: 'Post Your Car in Minutes. Sell Smart. Sell With Speed.',
-    badge: 'Frame 1',
   },
   {
     id: 2,
     title: 'Sell It. Fast & Easy.',
     subtitle: 'Secure Transactions And Real Buyers.',
-    badge: 'Frame 2',
   },
 ];
 
@@ -33,12 +31,12 @@ export default function OnboardingScreen() {
     if (currentStep < onboardingData.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      router.replace('/(auth)/sign-in');
+      router.replace('/sign-in');
     }
   };
 
   const handleSkip = () => {
-    router.replace('/(auth)/sign-in');
+    router.replace('/sign-in');
   };
 
   const data = onboardingData[currentStep];
@@ -67,11 +65,6 @@ export default function OnboardingScreen() {
 
       {/* Bottom Content */}
       <View style={styles.contentSection}>
-        {/* Badge */}
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{data.badge}</Text>
-        </View>
-
         {/* Headline */}
         <Text style={styles.headline}>{data.title}</Text>
 
@@ -99,7 +92,7 @@ export default function OnboardingScreen() {
             <Text style={styles.ctaButtonText}>Let's Get Started</Text>
           </TouchableOpacity>
         )}
-      </contentSection>
+      </View>
     </SafeAreaView>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,31 +8,55 @@ import {
   ScrollView,
   TextInput,
   FlatList,
+  ActivityIndicator,
+  Image,
+  Alert,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
 import { colors, theme } from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 import { useCarStore } from '@/store/carStore';
-import { CarCard } from '@/components/CarCard';
+import { CarCard, CARD_WIDTH, CARD_SPACING } from '@/components/CarCard';
 import { TabBar } from '@/components/TabBar';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user } = useAuthStore();
-  const { cars, filterByBudget, searchCars, selectedBudget } = useCarStore();
+  const { user, updateUser } = useAuthStore();
+  const { cars, filterByBudget, searchCars, selectedBudget, fetchCars, isLoading } = useCarStore();
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'favorites' | 'profile'>(
     'home'
   );
-  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    fetchCars();
+    fetchLocation();
+  }, []);
+
+  const fetchLocation = async () => {
+    if (!user?.location || user?.location === 'Location') {
+      try {
+        const response = await axios.get('https://ipapi.co/json/');
+        if (response.data && response.data.city && response.data.country_name) {
+          const locationString = `${response.data.city}, ${response.data.country_name}`;
+          updateUser({ location: locationString });
+        }
+      } catch (error) {
+        console.warn('Failed to fetch live location:', error);
+      }
+    }
+  };
 
   const handleTabPress = (tab: 'home' | 'search' | 'favorites' | 'profile') => {
     setActiveTab(tab);
     if (tab === 'search') {
-      router.push('/(main)/search');
+      router.push('/search');
     } else if (tab === 'favorites') {
-      router.push('/(main)/favorites');
+      router.push('/favorites');
     } else if (tab === 'profile') {
-      router.push('/(main)/profile');
+      router.push('/profile');
     }
   };
 
@@ -41,38 +65,23 @@ export default function HomeScreen() {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity>
-              <Text style={styles.icon}>☰</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ marginLeft: 12 }}>
-              <Text style={styles.icon}>🔔</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.headerCenter}>
-            <Text style={styles.userName}>{user?.name || 'User'}</Text>
-            <Text style={styles.userLocation}>📍 {user?.location || 'Location'}</Text>
-          </View>
-
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'U'}</Text>
-          </View>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search"
-            placeholderTextColor={colors.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <TouchableOpacity>
-            <Text style={styles.filterIcon}>⚙️</Text>
+          <TouchableOpacity onPress={() => Alert.alert('Notifications', 'Coming Soon')}>
+            <Image 
+              source={require('../../assets/images/bell_icon_home.png')} 
+              style={styles.bellIconOnly} 
+              resizeMode="contain" 
+            />
           </TouchableOpacity>
+
+          <View style={styles.headerRight}>
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{user?.name || 'User'}</Text>
+              <Text style={styles.userLocation}>📍 {user?.location || 'Detecting...'}</Text>
+            </View>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'U'}</Text>
+            </View>
+          </View>
         </View>
 
         <ScrollView
@@ -115,26 +124,34 @@ export default function HomeScreen() {
           {/* Recommendations */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recommendation For You</Text>
+              <Text style={styles.sectionTitle}>Recommended For You</Text>
               <TouchableOpacity>
                 <Text style={styles.seeAll}>View all</Text>
               </TouchableOpacity>
             </View>
 
-            <FlatList
-              data={cars}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => router.push(`/(main)/car-detail?id=${item.id}`)}
-                >
-                  <CarCard car={item} />
-                </TouchableOpacity>
-              )}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              scrollEnabled={true}
-            />
+            {isLoading ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : (
+              <FlatList
+                data={cars}
+                keyExtractor={(item, index) => item.id || item._id || index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => router.push(`/car-detail?id=${item.id}`)}
+                  >
+                    <CarCard car={item} />
+                  </TouchableOpacity>
+                )}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                scrollEnabled={true}
+                ItemSeparatorComponent={() => <View style={{ width: CARD_SPACING }} />}
+                snapToInterval={CARD_WIDTH + CARD_SPACING}
+                decelerationRate="fast"
+                snapToAlignment="start"
+              />
+            )}
           </View>
 
           {/* Discount Banner */}
@@ -160,6 +177,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.lightGray,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   content: {
     flex: 1,
@@ -171,24 +189,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  headerLeft: {
+  bellIconOnly: {
+    width: 24,
+    height: 24,
+    tintColor: colors.dark,
+  },
+  headerRight: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
-  headerCenter: {
-    alignItems: 'center',
+  userInfo: {
+    alignItems: 'flex-end',
   },
   userName: {
     fontSize: 16,
-    fontWeight: theme.fontWeights.bold,
+    fontWeight: theme.fontWeights.black,
     color: colors.dark,
   },
   userLocation: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.primary,
-  },
-  icon: {
-    fontSize: 20,
+    fontWeight: theme.fontWeights.semibold,
   },
   avatar: {
     width: 40,
@@ -197,37 +219,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.placeholder,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.white,
   },
   avatarText: {
     fontSize: 16,
-    fontWeight: theme.fontWeights.bold,
+    fontWeight: theme.fontWeights.black,
     color: colors.dark,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    backgroundColor: colors.mediumGray,
-    borderRadius: theme.borderRadius.pill,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 20,
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.dark,
-  },
-  filterIcon: {
-    fontSize: 16,
   },
   scrollView: {
     flex: 1,
-    marginTop: 16,
+    marginTop: 8,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
   discountBanner: {
     backgroundColor: colors.placeholder,
     borderRadius: theme.borderRadius.card,
-    height: 90,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,

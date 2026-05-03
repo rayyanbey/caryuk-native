@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
 import {
   View,
@@ -8,15 +9,17 @@ import {
   ScrollView,
   FlatList,
 } from 'react-native';
-import { useRouter, useSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { colors, theme } from '@/constants/colors';
 import { useCarStore } from '@/store/carStore';
 import { useCartStore } from '@/store/cartStore';
 
 export default function CarDetailScreen() {
   const router = useRouter();
-  const params = useSearchParams();
-  const carId = params.id as string;
+  const params = useLocalSearchParams();
+  const carIdParam = params.id as string | string[] | undefined;
+  const carId = Array.isArray(carIdParam) ? carIdParam[0] : (carIdParam || '');
   const { cars, isFavorite, toggleFavorite } = useCarStore();
   const { addToCart } = useCartStore();
 
@@ -185,7 +188,7 @@ export default function CarDetailScreen() {
         <TouchableOpacity
           onPress={() => {
             addToCart(car);
-            router.push('/(main)/payment');
+            router.push('/payment');
           }}
           style={styles.checkoutButton}
         >

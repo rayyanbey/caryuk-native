@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import { colors, theme } from '@/constants/colors';
 
 interface TabBarProps {
@@ -8,30 +8,39 @@ interface TabBarProps {
 }
 
 const TabIcons = {
-  home: '🏠',
-  search: '🔍',
-  favorites: '❤️',
-  profile: '👤',
+  home: require('../assets/images/home_icon.png'),
+  search: require('../assets/images/search_icon_home.png'),
+  favorites: require('../assets/images/heart_icon_home.png'),
+  profile: require('../assets/images/profile_icon_home.png'),
 };
 
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabPress }) => {
   return (
     <View style={styles.container}>
       <View style={styles.tabBar}>
-        {(Object.keys(TabIcons) as Array<keyof typeof TabIcons>).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => onTabPress(tab)}
-            style={[styles.tabItem, activeTab === tab && styles.activeTab]}
-          >
-            <Text style={styles.icon}>{TabIcons[tab]}</Text>
-            {activeTab === tab && (
-              <Text style={styles.tabLabel}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </Text>
-            )}
-          </TouchableOpacity>
-        ))}
+        {(Object.keys(TabIcons) as Array<keyof typeof TabIcons>).map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => onTabPress(tab)}
+              style={styles.tabItem}
+            >
+              <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
+                <Image 
+                  source={TabIcons[tab]} 
+                  style={[
+                    styles.icon, 
+                    { tintColor: isActive ? colors.primary : colors.white },
+                    (tab === 'search' || tab === 'favorites') && { width: 26, height: 26 },
+                    tab === 'favorites' && { transform: [{ translateY: 2 }] }
+                  ]} 
+                  resizeMode="contain" 
+                />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -40,38 +49,38 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabPress }) => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 45,
     left: 20,
     right: 20,
     alignItems: 'center',
   },
   tabBar: {
     backgroundColor: colors.primary,
-    borderRadius: theme.borderRadius.pill,
+    borderRadius: 40,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     width: '100%',
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
   },
-  activeTab: {
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconContainerActive: {
     backgroundColor: colors.white,
-    borderRadius: theme.borderRadius.pill,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
   },
   icon: {
-    fontSize: 20,
-  },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: theme.fontWeights.bold,
-    color: colors.primary,
-    marginTop: 2,
+    width: 22,
+    height: 22,
   },
 });

@@ -6,6 +6,8 @@ import {
   StyleSheet,
   SafeAreaView,
   FlatList,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, theme } from '@/constants/colors';
@@ -24,11 +26,11 @@ export default function FavoritesScreen() {
   const handleTabPress = (tab: 'home' | 'search' | 'favorites' | 'profile') => {
     setActiveTab(tab);
     if (tab === 'home') {
-      router.push('/(main)/home');
+      router.push('/home');
     } else if (tab === 'search') {
-      router.push('/(main)/search');
+      router.push('/search');
     } else if (tab === 'profile') {
-      router.push('/(main)/profile');
+      router.push('/profile');
     }
   };
 
@@ -55,10 +57,10 @@ export default function FavoritesScreen() {
         ) : (
           <FlatList
             data={favoritedCars}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => item._id || item.id || index.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => router.push(`/(main)/car-detail?id=${item.id}`)}
+                onPress={() => router.push(`/car-detail?id=${item.id}`)}
                 style={styles.carItem}
               >
                 <View style={styles.imageContainer}>
@@ -74,10 +76,10 @@ export default function FavoritesScreen() {
                 <View style={styles.carInfo}>
                   <View style={styles.ratingRow}>
                     <Text style={styles.star}>⭐</Text>
-                    <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
+                    <Text style={styles.rating}>{(typeof item.rating === 'number' ? item.rating : 5.0).toFixed(1)}</Text>
                   </View>
                   <Text style={styles.carName}>{item.name}</Text>
-                  <Text style={styles.price}>${(item.price / 1000).toFixed(0)}K</Text>
+                  <Text style={styles.price}>${((typeof item.price === 'number' ? item.price : 0) / 1000).toFixed(0)}K</Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -101,6 +103,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   content: {
     flex: 1,

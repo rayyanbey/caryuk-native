@@ -8,42 +8,44 @@ import {
   ScrollView,
   TextInput,
   FlatList,
+  Platform,
+  StatusBar,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, theme } from '@/constants/colors';
 import { useCarStore } from '@/store/carStore';
-import { CarCard } from '@/components/CarCard';
+import { CarCard, CARD_WIDTH, CARD_SPACING } from '@/components/CarCard';
 import { TabBar } from '@/components/TabBar';
-
-const searchHistoryData = ['Nissan GTR', 'Toyota Scar', 'Toyota Supra', 'Mazda RX-7', 'Supra MK4', 'Lancer Tokyo'];
 
 export default function SearchScreen() {
   const router = useRouter();
-  const { searchCars, filteredCars } = useCarStore();
+  const { searchCars, filteredCars, cars, searchHistory, addSearchHistory, clearSearchHistory } = useCarStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'favorites' | 'profile'>(
     'search'
   );
-  const [history, setHistory] = useState(searchHistoryData);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     searchCars(query);
   };
 
-  const handleTabPress = (tab: 'home' | 'search' | 'favorites' | 'profile') => {
-    setActiveTab(tab);
-    if (tab === 'home') {
-      router.push('/(main)/home');
-    } else if (tab === 'favorites') {
-      router.push('/(main)/favorites');
-    } else if (tab === 'profile') {
-      router.push('/(main)/profile');
+  const handleSubmitSearch = () => {
+    if (searchQuery.trim()) {
+      addSearchHistory(searchQuery.trim());
     }
   };
 
-  const handleClearHistory = () => {
-    setHistory([]);
+  const handleTabPress = (tab: 'home' | 'search' | 'favorites' | 'profile') => {
+    setActiveTab(tab);
+    if (tab === 'home') {
+      router.push('/home');
+    } else if (tab === 'favorites') {
+      router.push('/favorites');
+    } else if (tab === 'profile') {
+      router.push('/profile');
+    }
   };
 
   return (
@@ -51,9 +53,7 @@ export default function SearchScreen() {
       <View style={styles.content}>
         {/* AppBar */}
         <View style={styles.appBar}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
+          <View style={{ width: 24 }} />
           <Text style={styles.title}>Search</Text>
           <TouchableOpacity>
             <Text style={styles.menuIcon}>⋮</Text>
@@ -71,16 +71,18 @@ export default function SearchScreen() {
 
         {/* Search Input */}
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Image source={require('../../assets/images/search_icon_home.png')} style={styles.searchIconImage} resizeMode="contain" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search your favorites car"
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={handleSearch}
+            onSubmitEditing={handleSubmitSearch}
+            returnKeyType="search"
           />
           <TouchableOpacity>
-            <Text style={styles.filterIcon}>⚙️</Text>
+            <Image source={require('../../assets/images/filter_icon_home.png')} style={styles.filterIconImage} resizeMode="contain" />
           </TouchableOpacity>
         </View>
 
@@ -89,44 +91,45 @@ export default function SearchScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
-          {searchQuery.length === 0 && history.length > 0 ? (
+          {searchQuery.length === 0 ? (
             <>
               {/* History Section */}
               <View style={styles.section}>
                 <View style={styles.historyHeader}>
                   <Text style={styles.sectionTitle}>History</Text>
-                  <TouchableOpacity onPress={handleClearHistory}>
-                    <Text style={styles.trashIcon}>🗑️</Text>
+                  <TouchableOpacity onPress={clearSearchHistory}>
+                    <Image source={require('../../assets/images/trash_icon.png')} style={styles.trashIconImage} resizeMode="contain" />
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.historyChips}>
-                  {history.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.historyChip}
-                      onPress={() => handleSearch(item)}
-                    >
-                      <Text style={styles.historyChipText}>{item}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                {searchHistory.length > 0 ? (
+                  <View style={styles.historyChips}>
+                    {searchHistory.map((item, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.historyChip}
+                        onPress={() => {
+                          setSearchQuery(item);
+                          searchCars(item);
+                        }}
+                      >
+                        <Text style={styles.historyChipText}>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.noResultsText}>No recent searches</Text>
+                )}
               </View>
-            </>
-          ) : searchQuery.length > 0 && filteredCars.length === 0 ? (
-            <View style={styles.noResults}>
-              <Text style={styles.noResultsText}>No cars found</Text>
-            </View>
-          ) : (
-            <>
-              {/* Search Results */}
+
+              {/* Popular Products */}
               <Text style={styles.sectionTitle}>Popular Products</Text>
               <FlatList
-                data={filteredCars.length > 0 ? filteredCars : filteredCars}
-                keyExtractor={(item) => item.id}
+                data={cars}
+                keyExtractor={(item, index) => item._id || item.id || index.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    onPress={() => router.push(`/(main)/car-detail?id=${item.id}`)}
+                    onPress={() => router.push(`/car-detail?id=${item.id}`)}
                   >
                     <CarCard car={item} />
                   </TouchableOpacity>
@@ -134,6 +137,37 @@ export default function SearchScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 scrollEnabled={true}
+                ItemSeparatorComponent={() => <View style={{ width: CARD_SPACING }} />}
+                snapToInterval={CARD_WIDTH + CARD_SPACING}
+                decelerationRate="fast"
+                snapToAlignment="start"
+              />
+            </>
+          ) : filteredCars.length === 0 ? (
+            <View style={styles.noResults}>
+              <Text style={styles.noResultsText}>No cars found</Text>
+            </View>
+          ) : (
+            <>
+              {/* Search Results */}
+              <Text style={styles.sectionTitle}>Search Results</Text>
+              <FlatList
+                data={filteredCars}
+                keyExtractor={(item, index) => item._id || item.id || index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => router.push(`/car-detail?id=${item.id}`)}
+                  >
+                    <CarCard car={item} />
+                  </TouchableOpacity>
+                )}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                scrollEnabled={true}
+                ItemSeparatorComponent={() => <View style={{ width: CARD_SPACING }} />}
+                snapToInterval={CARD_WIDTH + CARD_SPACING}
+                decelerationRate="fast"
+                snapToAlignment="start"
               />
             </>
           )}
@@ -152,6 +186,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   content: {
     flex: 1,
@@ -162,9 +197,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 12,
-  },
-  backIcon: {
-    fontSize: 20,
   },
   title: {
     fontSize: 18,
@@ -178,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.mediumGray,
     marginHorizontal: 20,
     borderRadius: theme.borderRadius.card,
-    height: 90,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -213,17 +245,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  searchIcon: {
-    fontSize: 16,
+  searchIconImage: {
+    width: 20,
+    height: 20,
     marginRight: 8,
+    tintColor: colors.textSecondary,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     color: colors.dark,
   },
-  filterIcon: {
-    fontSize: 16,
+  filterIconImage: {
+    width: 20,
+    height: 20,
+    tintColor: colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -247,8 +283,10 @@ const styles = StyleSheet.create({
     color: colors.dark,
     marginBottom: 12,
   },
-  trashIcon: {
-    fontSize: 18,
+  trashIconImage: {
+    width: 20,
+    height: 20,
+    tintColor: colors.textSecondary,
   },
   historyChips: {
     flexDirection: 'row',

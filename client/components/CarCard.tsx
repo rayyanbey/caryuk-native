@@ -1,8 +1,12 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { colors, theme } from '@/constants/colors';
 import { Car } from '@/store/carStore';
 import { useCarStore } from '@/store/carStore';
+
+const { width } = Dimensions.get('window');
+export const CARD_SPACING = 16;
+export const CARD_WIDTH = (width - 56) / 2;
 
 interface CarCardProps {
   car: Car;
@@ -11,8 +15,8 @@ interface CarCardProps {
 }
 
 export const CarCard: React.FC<CarCardProps> = ({ car, onPress, showDetails = false }) => {
-  const { toggleFavorite, isFavorite } = useCarStore();
-  const favorited = isFavorite(car.id);
+  const { toggleFavorite, favorites } = useCarStore();
+  const favorited = favorites.includes(car.id);
 
   return (
     <TouchableOpacity
@@ -28,9 +32,20 @@ export const CarCard: React.FC<CarCardProps> = ({ car, onPress, showDetails = fa
           onPress={() => toggleFavorite(car.id)}
           style={[styles.heartIcon, favorited && styles.heartIconActive]}
         >
-          <Text style={styles.heart}>{favorited ? '❤️' : '🤍'}</Text>
+          <Image 
+            source={require('../assets/images/heart_icon_home.png')} 
+            style={{ width: 24, height: 24, tintColor: favorited ? '#FF4444' : colors.white }} 
+            resizeMode="contain" 
+          />
         </TouchableOpacity>
-      </imageContainer>
+
+        {/* Arrow Icon */}
+        {!showDetails && (
+          <View style={styles.arrowIcon}>
+            <Text style={{ color: colors.white, fontSize: 18, fontWeight: 'bold' }}>➔</Text>
+          </View>
+        )}
+      </View>
 
       {/* Car Info */}
       <View style={styles.infoContainer}>
@@ -52,22 +67,20 @@ export const CarCard: React.FC<CarCardProps> = ({ car, onPress, showDetails = fa
         {!showDetails && (
           <>
             <Text style={styles.nameSimple}>{car.name}</Text>
-            <Text style={styles.category}>{car.category}</Text>
+            <Text style={styles.category}>
+              {car.color ? `${car.color} ${car.category || ''}`.trim() : car.category || 'Standard'}
+            </Text>
             <Text style={styles.priceSimple}>${(car.price / 1000).toFixed(0)}K</Text>
           </>
         )}
-      </infoContainer>
+      </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: 160,
-    borderRadius: theme.borderRadius.card,
-    backgroundColor: colors.mediumGray,
-    marginRight: 12,
-    overflow: 'hidden',
+    width: CARD_WIDTH,
   },
   detailedContainer: {
     width: '100%',
@@ -76,41 +89,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   imageContainer: {
-    height: 110,
-    backgroundColor: colors.placeholder,
+    height: 120,
+    borderRadius: theme.borderRadius.card || 20,
+    backgroundColor: colors.placeholder || '#E5E5E5',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    marginBottom: 8,
   },
   emoji: {
     fontSize: 40,
   },
   heartIcon: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
+    top: 12,
+    right: 12,
+    zIndex: 1,
   },
-  heartIconActive: {
-    backgroundColor: '#FFE0E0',
-  },
-  heart: {
-    fontSize: 16,
+  arrowIcon: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
   },
   infoContainer: {
-    padding: 8,
     flex: 1,
   },
   nameSimple: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: theme.fontWeights.bold,
     color: colors.dark,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   name: {
     fontSize: 16,
@@ -120,12 +128,12 @@ const styles = StyleSheet.create({
   },
   category: {
     fontSize: 11,
-    color: colors.primary,
+    color: colors.textSecondary || '#666',
     fontWeight: theme.fontWeights.semibold,
     marginBottom: 4,
   },
   priceSimple: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: theme.fontWeights.black,
     color: colors.dark,
   },

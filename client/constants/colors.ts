@@ -11,7 +11,7 @@ export const colors = {
   mediumGray: '#EFEFEF',
   lightBorder: '#E8E8E8',
   gold: '#FFD700',
-};
+} as const;
 
 export const theme = {
   colors,
@@ -21,9 +21,9 @@ export const theme = {
     icon: 24,
   },
   fontWeights: {
-    regular: '400',
-    semibold: '600',
-    bold: '700',
-    black: '900',
+    regular: 400 as const,
+    semibold: 600 as const,
+    bold: 700 as const,
+    black: 900 as const,
   },
-};
+} as const;

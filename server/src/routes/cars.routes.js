@@ -3,15 +3,8 @@ const carsController = require('../controllers/cars.controller');
 const verifyJWT = require('../middleware/verifyJWT');
 
 // ============================================
-// PUBLIC ROUTES
+// PUBLIC ROUTES - Specific routes BEFORE parameterized routes
 // ============================================
-
-/**
- * GET ALL CARS
- * GET /api/cars
- * Query: { page, limit, category, fuelType, transmission, minPrice, maxPrice, search }
- */
-router.get('/', carsController.getAllCars);
 
 /**
  * GET POPULAR CARS
@@ -28,14 +21,22 @@ router.get('/popular', carsController.getPopularCars);
 router.get('/trending', carsController.getTrendingCars);
 
 /**
- * GET CAR BY ID
- * GET /api/cars/:id
+ * GET ALL CARS
+ * GET /api/cars
+ * Query: { page, limit, category, fuelType, transmission, minPrice, maxPrice, search }
  */
-router.get('/:id', carsController.getCarById);
+router.get('/', carsController.getAllCars);
 
 // ============================================
-// PROTECTED ROUTES (Require JWT)
+// PROTECTED ROUTES (Require JWT) - Specific routes BEFORE parameterized routes
 // ============================================
+
+/**
+ * GET MY CARS
+ * GET /api/cars/user/my-cars
+ * Headers: Authorization: Bearer {token}
+ */
+router.get('/user/my-cars', verifyJWT, carsController.getMyCars);
 
 /**
  * CREATE CAR
@@ -44,6 +45,12 @@ router.get('/:id', carsController.getCarById);
  * Body: { title, brand, model, year, price, category, fuelType, transmission, color, mileage, description, features, images }
  */
 router.post('/', verifyJWT, carsController.createCar);
+
+/**
+ * GET CAR BY ID
+ * GET /api/cars/:id
+ */
+router.get('/:id', carsController.getCarById);
 
 /**
  * UPDATE CAR
@@ -58,12 +65,5 @@ router.put('/:id', verifyJWT, carsController.updateCar);
  * Headers: Authorization: Bearer {token}
  */
 router.delete('/:id', verifyJWT, carsController.deleteCar);
-
-/**
- * GET MY CARS
- * GET /api/cars/user/my-cars
- * Headers: Authorization: Bearer {token}
- */
-router.get('/user/my-cars', verifyJWT, carsController.getMyCars);
 
 module.exports = router;

@@ -3,7 +3,7 @@ const userController = require('../controllers/user.controller');
 const verifyJWT = require('../middleware/verifyJWT');
 
 // ============================================
-// PROTECTED ROUTES (Require JWT)
+// PROTECTED ROUTES (Require JWT) - Specific routes BEFORE parameterized routes
 // ============================================
 
 /**
@@ -21,15 +21,8 @@ router.get('/profile', verifyJWT, userController.getProfile);
  */
 router.put('/profile', verifyJWT, userController.updateProfile);
 
-/**
- * DELETE USER ACCOUNT
- * DELETE /api/user/:id
- * Headers: Authorization: Bearer {token}
- */
-router.delete('/:id', verifyJWT, userController.deleteUser);
-
 // ============================================
-// FAVORITES MANAGEMENT
+// FAVORITES MANAGEMENT - Before parameterized routes
 // ============================================
 
 /**
@@ -52,5 +45,12 @@ router.post('/favorites/:carId', verifyJWT, userController.addFavorite);
  * Headers: Authorization: Bearer {token}
  */
 router.delete('/favorites/:carId', verifyJWT, userController.removeFavorite);
+
+/**
+ * DELETE USER ACCOUNT
+ * DELETE /api/user/:id
+ * Headers: Authorization: Bearer {token}
+ */
+router.delete('/:id', verifyJWT, userController.deleteUser);
 
 module.exports = router;

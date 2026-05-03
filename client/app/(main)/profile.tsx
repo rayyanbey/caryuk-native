@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import React from 'react';
 import {
   View,
@@ -7,6 +8,8 @@ import {
   SafeAreaView,
   ScrollView,
   FlatList,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, theme } from '@/constants/colors';
@@ -26,7 +29,7 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     logout();
-    router.replace('/(auth)/onboarding');
+    router.replace('/onboarding');
   };
 
   return (
@@ -101,6 +104,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   appBar: {
     flexDirection: 'row',

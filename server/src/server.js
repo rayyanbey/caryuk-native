@@ -3,7 +3,7 @@ const app = require('./app');
 const { connectDB } = require('./config/db');
 
 const PORT = process.env.PORT || 5000;
-const HOST = process.env.HOST || 'localhost';
+const HOST = process.env.HOST || '0.0.0.0';
 
 const startServer = async () => {
     try {

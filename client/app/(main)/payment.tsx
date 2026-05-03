@@ -21,7 +21,7 @@ export default function PaymentScreen() {
   const handleConfirmPayment = () => {
     clearCart();
     alert('Payment successful!');
-    router.replace('/(main)/home');
+    router.replace('/home');
   };
 
   const carItem = items[0];

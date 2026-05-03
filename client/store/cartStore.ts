@@ -1,7 +1,9 @@
 import { create } from 'zustand';
+import { apiService } from '@/service/api';
 import { Car } from './carStore';
 
 export interface CartItem {
+  _id?: string;
   car: Car;
   quantity: number;
   addedAt: Date;
@@ -9,49 +11,116 @@ export interface CartItem {
 
 interface CartStore {
   items: CartItem[];
-  addToCart: (car: Car) => void;
-  removeFromCart: (carId: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  addToCart: (car: Car) => Promise<void>;
+  removeFromCart: (carId: string) => Promise<void>;
   updateQuantity: (carId: string, quantity: number) => void;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
+  fetchCart: () => Promise<void>;
   getTotalPrice: () => number;
   getItemCount: () => number;
 }
 
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
-  addToCart: (car: Car) => {
-    set((state) => {
-      const existingItem = state.items.find((item) => item.car.id === car.id);
-      if (existingItem) {
+  isLoading: false,
+  error: null,
+
+  addToCart: async (car: Car) => {
+    try {
+      set({ isLoading: true, error: null });
+      const carId = car._id || car.id;
+      await apiService.addToCart(carId, 1);
+
+      set((state) => {
+        const existingItem = state.items.find((item) => (item.car._id || item.car.id) === carId);
+        if (existingItem) {
+          return {
+            items: state.items.map((item) =>
+              (item.car._id || item.car.id) === carId ? { ...item, quantity: item.quantity + 1 } : item
+            ),
+            isLoading: false,
+          };
+        }
         return {
-          items: state.items.map((item) =>
-            item.car.id === car.id ? { ...item, quantity: item.quantity + 1 } : item
-          ),
+          items: [...state.items, { car, quantity: 1, addedAt: new Date() }],
+          isLoading: false,
         };
-      }
-      return {
-        items: [...state.items, { car, quantity: 1, addedAt: new Date() }],
-      };
-    });
+      });
+    } catch (error: any) {
+      console.warn('Failed to add to cart via API, using local state:', error.message);
+      set((state) => {
+        const existingItem = state.items.find((item) => (item.car._id || item.car.id) === (car._id || car.id));
+        if (existingItem) {
+          return {
+            items: state.items.map((item) =>
+              (item.car._id || item.car.id) === (car._id || car.id) ? { ...item, quantity: item.quantity + 1 } : item
+            ),
+            isLoading: false,
+          };
+        }
+        return {
+          items: [...state.items, { car, quantity: 1, addedAt: new Date() }],
+          isLoading: false,
+        };
+      });
+    }
   },
-  removeFromCart: (carId: string) => {
-    set((state) => ({
-      items: state.items.filter((item) => item.car.id !== carId),
-    }));
+
+  removeFromCart: async (carId: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      await apiService.removeFromCart(carId);
+      set((state) => ({
+        items: state.items.filter((item) => (item.car._id || item.car.id) !== carId),
+        isLoading: false,
+      }));
+    } catch (error: any) {
+      console.warn('Failed to remove from cart via API, using local state:', error.message);
+      set((state) => ({
+        items: state.items.filter((item) => (item.car._id || item.car.id) !== carId),
+        isLoading: false,
+      }));
+    }
   },
+
   updateQuantity: (carId: string, quantity: number) => {
     set((state) => ({
       items: state.items.map((item) =>
-        item.car.id === carId ? { ...item, quantity: Math.max(1, quantity) } : item
+        (item.car._id || item.car.id) === carId ? { ...item, quantity: Math.max(1, quantity) } : item
       ),
     }));
   },
-  clearCart: () => {
-    set({ items: [] });
+
+  clearCart: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      await apiService.clearCart();
+      set({ items: [], isLoading: false });
+    } catch (error: any) {
+      console.warn('Failed to clear cart via API, using local state:', error.message);
+      set({ items: [], isLoading: false });
+    }
   },
+
+  fetchCart: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await apiService.getCart();
+      const cartData = response.data.data || response.data;
+      const items = Array.isArray(cartData) ? cartData : cartData.items || [];
+      set({ items, isLoading: false });
+    } catch (error: any) {
+      console.warn('Failed to fetch cart:', error.message);
+      set({ isLoading: false });
+    }
+  },
+
   getTotalPrice: () => {
     return get().items.reduce((total, item) => total + item.car.price * item.quantity, 0);
   },
+
   getItemCount: () => {
     return get().items.reduce((count, item) => count + item.quantity, 0);
   },

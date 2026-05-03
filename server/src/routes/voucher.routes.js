@@ -21,7 +21,7 @@ router.get('/', voucherController.getAllVouchers);
 router.post('/validate', voucherController.validateVoucher);
 
 // ============================================
-// PROTECTED ROUTES (Admin only)
+// PROTECTED ROUTES (Admin only) - Specific routes BEFORE parameterized routes
 // ============================================
 
 /**
