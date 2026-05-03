@@ -30,9 +30,10 @@ const stripeConfig = {
 };
 
 /**
- * Payment currency (PKR for Pakistan)
+ * Payment currency used for Stripe presentment.
+ * Keep prices in DB in PKR and convert for Stripe when needed.
  */
-const PAYMENT_CURRENCY = 'pkr';
+const PAYMENT_CURRENCY = (process.env.STRIPE_CURRENCY || 'usd').toLowerCase();
 
 /**
  * Refund reasons

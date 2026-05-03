@@ -5,7 +5,6 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 const authController = require('../controllers/auth.controller');
 const verifyJWT = require('../middleware/verifyJWT');
-const uploadErrorHandler = require('../middleware/upload');
 require('../config/passport'); // Load passport strategies
 require('dotenv').config();
 
@@ -57,7 +56,7 @@ const signupUpload = multer({
  * Body: { name, email, password, confirmPassword, phone }
  * File: avatar (optional) - profile picture
  */
-router.post('/signup', signupUpload.single('avatar'), uploadErrorHandler, authController.signup);
+router.post('/signup', signupUpload.single('avatar'), authController.signup);
 
 /**
  * LOGIN - Login with email/password
