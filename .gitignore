@@ -1,0 +1,9 @@
+.idea/
+.vs/
+*.png
+!client/assets/images/*.png
+node_modules/
+.expo/
+dist/
+web-build/
+.env
