@@ -57,7 +57,7 @@ const signupUpload = multer({
  * Body: { name, email, password, confirmPassword, phone }
  * File: avatar (optional) - profile picture
  */
-router.post('/signup', signupUpload.single('avatar'), uploadErrorHandler, authController.signup);
+router.post('/signup', signupUpload.single('avatar'), authController.signup);
 
 /**
  * LOGIN - Login with email/password

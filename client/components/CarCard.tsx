@@ -25,10 +25,10 @@ export const CarCard: React.FC<CarCardProps> = ({ car, onPress, showDetails = fa
       {/* Image Placeholder */}
       <View style={styles.imageContainer}>
         {car.image?.startsWith('http') ? (
-          <Image 
-            source={{ uri: car.image }} 
-            style={styles.fullImage} 
-            resizeMode="cover" 
+          <Image
+            source={{ uri: car.image }}
+            style={styles.fullImage}
+            resizeMode="cover"
           />
         ) : (
           <Text style={styles.emoji}>{car.image || '🚗'}</Text>
@@ -39,10 +39,10 @@ export const CarCard: React.FC<CarCardProps> = ({ car, onPress, showDetails = fa
           onPress={() => toggleFavorite(car.id)}
           style={[styles.heartIcon, favorited && styles.heartIconActive]}
         >
-          <Image 
-            source={require('../assets/images/heart_icon_home.png')} 
-            style={{ width: 24, height: 24, tintColor: favorited ? '#FF4444' : colors.white }} 
-            resizeMode="contain" 
+          <Image
+            source={require('../assets/images/heart_icon_home.png')}
+            style={{ width: 24, height: 24, tintColor: favorited ? '#FF4444' : colors.white }}
+            resizeMode="contain"
           />
         </TouchableOpacity>
 

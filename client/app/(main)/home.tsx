@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -49,6 +49,8 @@ export default function HomeScreen() {
     'home'
   );
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const bannerRef = useRef<FlatList>(null);
+
 
   const itemCount = getItemCount();
 
@@ -131,7 +133,15 @@ export default function HomeScreen() {
               <Text style={styles.userLocation}>📍 {user?.location || 'Detecting...'}</Text>
             </View>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'U'}</Text>
+              {user?.avatarUrl ? (
+                <Image 
+                  source={{ uri: user.avatarUrl }} 
+                  style={styles.avatarImage} 
+                  resizeMode="cover" 
+                />
+              ) : (
+                <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'U'}</Text>
+              )}
             </View>
           </View>
         </View>
@@ -209,12 +219,19 @@ export default function HomeScreen() {
           {/* Discount Banner Carousel */}
           <View style={styles.bannerContainer}>
             <FlatList
+              ref={bannerRef}
               data={PROMO_BANNERS}
               horizontal
               pagingEnabled
               showsHorizontalScrollIndicator={false}
               onMomentumScrollEnd={onBannerScroll}
               keyExtractor={(item) => item.id}
+              initialScrollIndex={0}
+              getItemLayout={(data, index) => ({
+                length: width,
+                offset: width * index,
+                index,
+              })}
               renderItem={({ item }) => (
                 <View style={{ width: width, alignItems: 'center' }}>
                   <View style={styles.discountBanner}>
@@ -223,6 +240,7 @@ export default function HomeScreen() {
                 </View>
               )}
             />
+
             <View style={styles.pagination}>
               {PROMO_BANNERS.map((_, index) => (
                 <View 
@@ -334,6 +352,11 @@ const styles = StyleSheet.create({
     fontWeight: theme.fontWeights.black,
     color: colors.dark,
   },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 22,
+  },
   scrollView: {
     flex: 1,
     marginTop: 8,
@@ -392,14 +415,15 @@ const styles = StyleSheet.create({
   bannerContainer: {
     marginBottom: 24,
     position: 'relative',
+    marginHorizontal: -20,
   },
   discountBanner: {
     width: BANNER_WIDTH,
     borderRadius: theme.borderRadius.card,
-    height: 120,
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     backgroundColor: colors.surface,
   },
   discountText: {
@@ -412,8 +436,8 @@ const styles = StyleSheet.create({
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
-    marginTop: 12,
+    gap: 4,
+    marginTop: 8,
   },
   dot: {
     width: 6,
@@ -423,7 +447,7 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     backgroundColor: colors.primary,
-    width: 20,
+    width: 16,
   },
   noResults: {
     width: CARD_WIDTH * 2 + CARD_SPACING,
